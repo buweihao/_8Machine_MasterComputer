@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Docker.DotNet" Version="3.125.15" />
+    <PackageReference Include="IronSoftware.System.Drawing" Version="2024.12.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0" />
+    <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="17.12.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Serilog" Version="4.2.1-dev-02337" />
+    <PackageReference Include="Serilog.Enrichers.CallerInfo" Version="1.0.5" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.1-dev-02308" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="9.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageReference Include="Serilog.Sinks.TextWriter" Version="3.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
+    <PackageReference Include="System.Drawing.Primitives" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="_8Machine_Algorithm">
+      <HintPath>..\..\_8Machine\_8Machine_Algorithm\bin\Debug\net8.0-windows\_8Machine_Algorithm.dll</HintPath>
+    </Reference>
+    <Reference Include="_8Machine_Camera">
+      <HintPath>..\..\_8Machine\_8Machine_Camera\bin\Debug\net8.0-windows\_8Machine_Camera.dll</HintPath>
+    </Reference>
+    <Reference Include="_8Machine_Json">
+      <HintPath>..\..\_8Machine\_8Machine_Json\bin\Debug\net8.0-windows\_8Machine_Json.dll</HintPath>
+    </Reference>
+    <Reference Include="_8Machine_MachDB">
+      <HintPath>..\..\_8Machine\_8Machine_MachDB\bin\Debug\net8.0-windows\_8Machine_MachDB.dll</HintPath>
+    </Reference>
+    <Reference Include="_8Machine_RTSPStreamer">
+      <HintPath>..\..\_8Machine\_8Machine_RTSPStreamer\bin\Debug\net8.0-windows\_8Machine_RTSPStreamer.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

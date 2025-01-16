@@ -1,0 +1,34 @@
+﻿<Window x:Class="_8Machine_MasterComputer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:_8Machine_MasterComputer"
+        mc:Ignorable="d"
+        Title="选择身份"
+        Height="300"
+        Width="400">
+    <StackPanel>
+        <Button Content="上位机"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Margin="10"
+                Width="200"
+                Height="50"
+                Click="LaunchMasterComputerWindow_Click" />
+        <Button Content="推理机1"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Margin="10"
+                Width="200"
+                Height="50"
+                Click="LaunchInferComputer1Window_Click" />
+        <Button Content="推理机2"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                Margin="10"
+                Width="200"
+                Height="50"
+                Click="LaunchInferComputer2Window_Click" />
+    </StackPanel>
+</Window>

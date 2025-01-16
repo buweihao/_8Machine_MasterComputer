@@ -1,0 +1,10 @@
+﻿<Application x:Class="_8Machine_MasterComputer.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:_8Machine_MasterComputer"
+            >
+    <!-- StartupUri="View/InferComputer.xaml"-->
+    <Application.Resources>
+        
+    </Application.Resources>
+</Application>
