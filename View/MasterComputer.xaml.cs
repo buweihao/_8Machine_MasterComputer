@@ -23,15 +23,14 @@ namespace _8Machine_MasterComputer.View
     /// </summary>
     public partial class MasterComputer : Window
     {
-        TcpSerModel tcpSerModel;
-        ITcpService ITcpService;
+
+        ITcpService ITcpService ;
         public MasterComputer()
         {
 
             InitializeComponent();
 
             //获取所需实例
-            tcpSerModel = SingleInstance.Instance.tcpSerModel;
             ITcpService = SingleInstance.Instance.ITcpService;
 
             // 使用自定义控件 TextBoxWriter 封装 前端控件OutputTextBox
@@ -48,42 +47,42 @@ namespace _8Machine_MasterComputer.View
         {
             // 发送测试按钮的 JSON 数据
             string data = "{\"Cmd\":\"Msg_ctl\",\"Subcmd\":\"Test\"}";
-            ITcpService.SendToBoardCard(ref data, tcpSerModel);
+            ITcpService.SendToBoardCard(ref data, SingleInstance.Instance.tcpSerModel);
         }
 
         private void Stark_Click(object sender, RoutedEventArgs e)
         {
             // 发送开始按钮的 JSON 数据
             string data = "{\"Cmd\":\"Msg_ctl\",\"Subcmd\":\"Start\"}";
-            ITcpService.SendToBoardCard(ref data, tcpSerModel); ;
+            ITcpService.SendToBoardCard(ref data, SingleInstance.Instance.tcpSerModel); ;
         }
 
         private void Pause_Click(object sender, RoutedEventArgs e)
         {
             // 发送暂停按钮的 JSON 数据
             string data = "{\"Cmd\":\"Msg_ctl\",\"Subcmd\":\"Pause\"}";
-            ITcpService.SendToBoardCard(ref data, tcpSerModel); ;
+            ITcpService.SendToBoardCard(ref data, SingleInstance.Instance.tcpSerModel); ;
         }
 
         private void Stop_Click(object sender, RoutedEventArgs e)
         {
             // 发送停止按钮的 JSON 数据
             string data = "{\"Cmd\":\"Msg_ctl\",\"Subcmd\":\"Stop\"}";
-            ITcpService.SendToBoardCard(ref data, tcpSerModel); ;
+            ITcpService.SendToBoardCard(ref data, SingleInstance.Instance.tcpSerModel); ;
         }
 
         private void Restart_Click(object sender, RoutedEventArgs e)
         {
             // 发送重新开始按钮的 JSON 数据
             string data = "{\"Cmd\":\"Msg_ctl\",\"Subcmd\":\"Restart\"}";
-            ITcpService.SendToBoardCard(ref data, tcpSerModel); ;
+            ITcpService.SendToBoardCard(ref data, SingleInstance.Instance.tcpSerModel); ;
         }
 
         private void SysReset_Click(object sender, RoutedEventArgs e)
         {
             // 发送系统复位按钮的 JSON 数据
             string data = "{\"Cmd\":\"Msg_ctl\",\"Subcmd\":\"sysReset\"}";
-            ITcpService.SendToBoardCard(ref data, tcpSerModel); ;
+            ITcpService.SendToBoardCard(ref data, SingleInstance.Instance.tcpSerModel); ;
         }
 
     }

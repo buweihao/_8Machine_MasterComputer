@@ -24,7 +24,7 @@ namespace MachDBTcp.Test
 
         public static void MasterComputer()
         {
-            //获取所需实例
+            //创建和获取所需实例
             var tcpModel = new TcpSerModel();
             var iTcpServices = Instance.ITcpService;
             Instance.tcpSerModel = tcpModel;

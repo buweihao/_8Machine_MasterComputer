@@ -26,7 +26,6 @@ namespace _8Machine_MasterComputer.View
             InitializeComponent();
             SingleInstance.Instance.InitializeInferComputerViewModel();
             DataContext = SingleInstance.Instance.inferComputer1VM;
-
         }
     }
 }

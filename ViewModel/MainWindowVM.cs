@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using _8Machine_MasterComputer.Instance;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -12,9 +13,7 @@ namespace _8Machine_MasterComputer.ViewModel
     public class MainWindowVM  
     {
 
-
-
-
+        
     }
 
 

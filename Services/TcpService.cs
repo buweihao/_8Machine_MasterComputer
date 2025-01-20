@@ -73,6 +73,7 @@ namespace MachDBTcp.Services
 
                                     //保存套接字为板卡套接字
                                     tcp.BoardCardTcpClient = tcpClient;
+
                                     //使用HandleBoardCard处理套接字消息
                                     Thread clientThread = new Thread(() => HandleBoardCardThread(tcpClient, ReciveDelayTime, tcp));
                                     clientThread.Start();
@@ -665,7 +666,6 @@ namespace MachDBTcp.Services
                     {
                         if (CheckTcpClient(tcpSerModel.InferTcpClient1))
                         {
-                            Instance.MasterComputer2InferComputer1.Information($"向推理机发送:{TcpSerModel.GetCmd(SourceJson, tcpSerModel)}");
                             InferComputerReturnJson = SendToInferComputerAndWaitForReturn(
                             ref SourceJson,
                             tcpSerModel.InferTcpClient1,
@@ -755,6 +755,8 @@ namespace MachDBTcp.Services
             {
                 //发送给推理机
                 InferComputerReturnJson = SendToInferComputerAndWaitForReturn(ref SourceJson, tcpSerModel.InferTcpClient1, tcpSerModel);
+                Instance.MasterComputer2InferComputer1.Information($"收到推理机返回: {TcpSerModel.GetCmd(InferComputerReturnJson, tcpSerModel)}");
+
                 //将推理机返回的内容发送给回板卡
                 SendToBoardCard(ref InferComputerReturnJson, tcpSerModel);
             }

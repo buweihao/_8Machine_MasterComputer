@@ -56,7 +56,7 @@ namespace _8Machine_MasterComputer.Instance
         {
             // 初始化单例对象
             //tcpSerModel = new TcpSerModel();
-            //cliModel = new TcpCliModel();
+            //tcpCliModel = new TcpCliModel();
 
             algorithmModel = new _8Machine_Algorithm.Models.AlgorithmModel();
             cameraModel = new _8Machine_Camera.Models.CameraModel();
