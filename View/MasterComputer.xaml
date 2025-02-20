@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:_8Machine_MasterComputer.View"
         mc:Ignorable="d"
         Title="MasterComputer"
-        Height="900"
+        Height="1000"
         Width="1600">
     <Grid>
         <Grid.ColumnDefinitions>
@@ -21,11 +21,11 @@
             <Grid Grid.Row="0"></Grid>
             <StackPanel Grid.Row="1">
                 <Button Content="测试"
-                        IsEnabled="{Binding Test}"
+                        IsEnabled="True"
                         Width="200"
                         Height="50"
                         Margin="10"
-                        Click="Test_Click" />
+                        Click="Button_Click" />
                 <Button Content="开始"
                         IsEnabled="{Binding Start}"
                         Width="200"
@@ -56,7 +56,148 @@
                         Height="50"
                         Margin="10"
                         Click="SysReset_Click" />
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel>
+                        <Button 
+                                x:Name="btnGetFileListUpper"
+                                Content="获取文件列表"
+                                Click="btnGetFileList_Click" />
+
+                        <ComboBox x:Name="cmbLineType"
+                                  SelectedIndex="0">
+                            <ComboBoxItem Content="A线" />
+                            <ComboBoxItem Content="B线" />
+                            <ComboBoxItem Content="AB线" />
+                        </ComboBox>
+
+                    </StackPanel>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <!-- 上标刻设置区域 -->
+                        <StackPanel Grid.Column="0"
+                                    Margin="10">
+
+                            <TextBlock Text="上标刻设置"
+                                       FontSize="16"
+                                       FontWeight="Bold" />
+
+                            <ComboBox x:Name="cmbFileListUpper"
+                                      DisplayMemberPath="FileName" />
+                            <Button x:Name="btnSetActiveFileUpper"
+                                    Content="设为活动文件"
+                                    Click="btnSetActiveFileUpper_Click" />
+
+                            <ItemsControl x:Name="itemsControlUnitInfoUpper">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <CheckBox x:Name="chkEnable"
+                                                      Content="标刻使能"
+                                                      IsChecked="{Binding IsEnabled}" />
+                                            <TextBox x:Name="txtDatabaseColumn"
+                                                     Text="{Binding DatabaseColumn}"
+                                                     Width="50" />
+                                            <TextBlock Text="{Binding UnitName}"
+                                                       Margin="10,0,0,0" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button x:Name="btnConfirmUpper"
+                                    Content="确定"
+                                    Click="btnConfirmUpper_Click" />
+                        </StackPanel>
+
+                        <!-- 下标刻设置区域 -->
+                        <StackPanel Grid.Column="1"
+                                    Margin="10">
+                            <TextBlock Text="下标刻设置"
+                                       FontSize="16"
+                                       FontWeight="Bold" />
+                            <ComboBox x:Name="cmbFileListLower"
+                                      DisplayMemberPath="FileName" />
+                            <Button x:Name="btnSetActiveFileLower"
+                                    Content="设为活动文件"
+                                    Click="btnSetActiveFileLower_Click" />
+                              <ItemsControl x:Name="itemsControlUnitInfoLower">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <CheckBox x:Name="chkEnable"
+                                                      Content="标刻使能"
+                                                      IsChecked="{Binding IsEnabled}" />
+                                            <TextBox x:Name="txtDatabaseColumn"
+                                                     Text="{Binding DatabaseColumn}"
+                                                     Width="50" />
+                                            <TextBlock Text="{Binding UnitName}"
+                                                       Margin="10,0,0,0" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button x:Name="btnConfirmLower"
+                                    Content="确定"
+                                    Click="btnConfirmLower_Click" />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+                <Button Height="20" Content="控制台打印图元Json" Click="Button_Click_3"></Button>
+                
+                <Button Height="20"
+                        Content="加载可选主键"
+                        Click="Button_Click_1"></Button>
+                <ComboBox x:Name="cmbPrimarykeyColumn"
+                          SelectedIndex="0" />
+                <Button Height="20"
+                        Content="确认主键"
+                        Click="Button_Click_2"></Button>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- 文件路径显示框 -->
+                    <TextBox x:Name="FilePathTextBox"
+                             Text="将码包文件拖拽到此处"
+                             Height="50"
+                             Grid.Row="0"
+                             Margin="10"
+                             IsReadOnly="True"
+                             VerticalContentAlignment="Center"
+                             AllowDrop="True"
+                             PreviewDragOver="TextBox_PreviewDragOver"
+                             PreviewDrop="TextBox_PreviewDrop" />
+
+                    <!-- 数据展示表格 -->
+                    <DataGrid x:Name="DataGrid"
+                              Height="50"
+                              Grid.Row="1"
+                              Margin="10"
+                              AutoGenerateColumns="True" />
+                </Grid>
+                <Button Content="加载machDBModel"
+                        Click="LoadmMachDBModelClick"></Button>
+                <Button Content="测试数据库"
+                        Click="Test_DataBase">
+                </Button>
+                <Button Content="检测一条码"
+                        Click="IsNG_Click">
+                    
+                </Button>
+
             </StackPanel>
+
+
         </Grid>
 
         <Grid>
@@ -65,10 +206,11 @@
                 <RowDefinition Height="18*"></RowDefinition>
             </Grid.RowDefinitions>
             <Label Content="板卡消息"
-                   Margin="10,10,10,10" Grid.Row="0"></Label>
+                   Margin="10,10,10,10"
+                   Grid.Row="0"></Label>
 
             <TextBox x:Name="OutputTextBox"
-            Grid.Row="1"
+                     Grid.Row="1"
                      VerticalScrollBarVisibility="Auto"
                      HorizontalScrollBarVisibility="Auto"
                      TextWrapping="Wrap"

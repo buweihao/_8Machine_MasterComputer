@@ -14,10 +14,16 @@ using _8Machine_MasterComputer.ViewModel;
 using static _8Machine_MasterComputer.Instance.SingleInstance;
 using _8Machine_MasterComputer.Instance;
 using System.Threading.Tasks;
+using K4os.Compression.LZ4.Internal;
+using System.Runtime.Intrinsics.X86;
+using System.Windows.Shapes;
+using ZstdSharp.Unsafe;
+using System.Text.RegularExpressions;
+using Org.BouncyCastle.Tls;
 
 namespace MachDBTcp.Services
 {
- 
+
 
 
     public class TcpService : ITcpService
@@ -33,18 +39,24 @@ namespace MachDBTcp.Services
             string? InferComputer1IP = Instance.config["MasterComputer:IP:InferComputer1IP"];
             string? InferComputer2IP = Instance.config["MasterComputer:IP:InferComputer2IP"];
 
-
+            string? UpMarkingSoftWareIP = Instance.config["MasterComputer:IP:UpMarkingSoftWareIP"];
+            string? DownMarkingSoftWareIP = Instance.config["MasterComputer:IP:DownMarkingSoftWareIP"];
+            int upMarkingSoftWarePort = int.Parse(Instance.config["MasterComputer:Port:UpMarkingSoftWarePort"]);
+            int downMarkingSoftWarePort = int.Parse(Instance.config["MasterComputer:Port:DownMarkingSoftWarePort"]);
 
             // 绑定 IP 和端口
+            var _tcpListener0 = new TcpListener(IPAddress.Parse(tcp.ipAddress1), tcp.port0);
             var _tcpListener1 = new TcpListener(IPAddress.Parse(tcp.ipAddress1), tcp.port1);
             var _tcpListener2 = new TcpListener(IPAddress.Parse(tcp.ipAddress2), tcp.port2);
 
             // 启动监听
-            _tcpListener1.Start();
+            _tcpListener0.Start();
+            //_tcpListener1.Start();
             _tcpListener2.Start();
 
             Instance.MasterComputer2BoardCardLog.Debug("服务器已启动，等待客户端连接...");
-            Instance.MasterComputer2BoardCardLog.Debug($"监听地址1：{tcp.ipAddress1}:{tcp.port1}");
+            Instance.MasterComputer2BoardCardLog.Debug($"监听地址1：{tcp.ipAddress1}:{tcp.port0}");
+            //Instance.MasterComputer2BoardCardLog.Debug($"监听地址1：{tcp.ipAddress1}:{tcp.port1}");//8003为测试端口，不需要
             Instance.MasterComputer2BoardCardLog.Debug($"监听地址2：{tcp.ipAddress2}:{tcp.port2}");
 
             // 无限等待客户端连接
@@ -54,7 +66,10 @@ namespace MachDBTcp.Services
                 {
                     try
                     {
-                        if (_tcpListener1.Pending())
+                        if (
+                        false
+                        //_tcpListener1.Pending()
+                        )
                         {
                             //获取新客户端套接字
                             var tcpClient = _tcpListener1.AcceptTcpClient();
@@ -86,6 +101,39 @@ namespace MachDBTcp.Services
 
                             }
                         }
+                        else if (_tcpListener0.Pending())
+                        {
+                            //获取新客户端套接字
+                            var tcpClient = _tcpListener0.AcceptTcpClient();
+
+                            // 获取客户端的 IP 和端口
+                            var clientEndPoint = tcpClient.Client.RemoteEndPoint as System.Net.IPEndPoint;
+                            if (clientEndPoint != null)
+                            {
+                                Instance.MasterComputer2BoardCardLog.Debug($"客户端已连接 - IP: {clientEndPoint.Address}, 端口: {clientEndPoint.Port}");
+
+                                // 检查客户端IP 地址是否合法
+                                string clientIP = clientEndPoint.Address.ToString();
+                                if (clientIP.StartsWith(BoardCardIP))
+                                {
+                                    Instance.MasterComputer2BoardCardLog.Debug("板卡已和数据库连接");
+
+                                    //保存套接字为板卡-数据库套接字
+                                    tcp.BoardCard_DataBaseTcpClient = tcpClient;
+
+                                    //使用HandleBoardCard处理套接字消息
+                                    Thread clientThread = new Thread(() => HandleBoardCardThread(tcpClient, ReciveDelayTime, tcp));
+                                    clientThread.Start();
+                                }
+                                else
+                                {
+                                    Instance.MasterComputer2BoardCardLog.Debug($"未知网段的客户端连接 - IP: {clientIP}");
+                                    tcpClient.Close(); // 关闭连接，拒绝未知网段
+                                }
+
+                            }
+                        }
+
                         else if (_tcpListener2.Pending())
                         {
                             //获取新客户端套接字
@@ -135,11 +183,15 @@ namespace MachDBTcp.Services
             // 启动监听线程
             listenerThread.Start();
 
+            //作为客户端连接上下打标软件，并将套接字保存到tcp.MarkingClientUp和tcp.MarkingClientDn
+            ConnectToMarkingSoftWare(tcp, DownMarkingSoftWareIP, downMarkingSoftWarePort, UpMarkingSoftWareIP, upMarkingSoftWarePort,5);
         }
 
-        public void SendToBoardCard(ref string JsonMessage, TcpSerModel tcp)
+
+
+        public void SendToBoardCard(ref string JsonMessage, TcpSerModel tcp,TcpClient tcpClient)
         {
-            if (!CheckTcpClient(tcp.BoardCardTcpClient))
+            if (!CheckTcpClient(tcpClient))
             {
                 Instance.MasterComputer2BoardCardLog.Fatal("板卡套接字不可用...");
                 return;
@@ -147,7 +199,7 @@ namespace MachDBTcp.Services
             try
             {
                 //获取流
-                NetworkStream networkStream = tcp.BoardCardTcpClient.GetStream();
+                NetworkStream networkStream = tcp.BoardCard_DataBaseTcpClient.GetStream();
 
                 // 将 JSON 数据转为字节流
                 byte[] responseBytes = Encoding.UTF8.GetBytes(JsonMessage);
@@ -301,7 +353,9 @@ namespace MachDBTcp.Services
                 NetworkStream networkStream = tcpClient.GetStream();
 
                 // 将 JSON 数据转为字节流
-                byte[] responseBytes = Encoding.UTF8.GetBytes(JsonMessage);
+                byte[] responseBytes = null;
+
+                AddStartTail(ref responseBytes, JsonMessage);
 
                 if (networkStream.CanWrite)
                 {
@@ -313,7 +367,6 @@ namespace MachDBTcp.Services
                         // 使用正则表达式提取 Cmd 字段并记录日志
                         try
                         {
-
                             // 格式化日志
                             Instance.MasterComputer2InferComputer1.Information($"向打标软件发送了 {TcpSerModel.GetAct(JsonMessage, tcp)}");
                         }
@@ -341,24 +394,32 @@ namespace MachDBTcp.Services
                                     // 将本次读取的字节数据追加到 StringBuilder
                                     jsonMessageBuilder.Append(Encoding.UTF8.GetString(buffer, 0, bytesRead));
 
-                                    // 检查 StringBuilder 是否包含完整的 JSON 数据
+                                    // 获取当前存储的所有数据
                                     string currentData = jsonMessageBuilder.ToString();
 
-                                    // 检查是否以 `{` 开头并以 `}` 结尾
-                                    if (currentData.StartsWith("{") && currentData.EndsWith("}"))
+                                    // 查找第一个 '{' 的位置
+                                    int startIndex = currentData.IndexOf('{');
+                                    if (startIndex >= 0)
                                     {
-                                        try
-                                        {
-                                            // 格式化日志
-                                            Instance.MasterComputer2InferComputer1.Information($"打标软件回复了一条： {TcpSerModel.GetAct(currentData, tcp)}");
+                                        // 从 '{' 开始截取数据
+                                        currentData = currentData.Substring(startIndex);
 
-                                            // 返回完整的 JSON 数据，实际应该返回上面处理后的Json
-                                            return currentData;
-                                        }
-                                        catch (JsonException ex)
+                                        // 检查是否以 `{` 开头并以 `}` 结尾
+                                        if (currentData.StartsWith("{") && currentData.EndsWith("}"))
                                         {
-                                            Instance.MasterComputer2BoardCardLog.Error($"JSON 解析失败: {ex.Message}");
-                                            jsonMessageBuilder.Clear(); // 清空缓存，防止后续解析错误
+                                            try
+                                            {
+                                                // 格式化日志
+                                                Instance.MasterComputer2InferComputer1.Information($"打标软件回复了一条： {currentData}");
+
+                                                // 返回完整的 JSON 数据，实际应该返回上面处理后的Json
+                                                return currentData;
+                                            }
+                                            catch (JsonException ex)
+                                            {
+                                                Instance.MasterComputer2BoardCardLog.Error($"JSON 解析失败: {ex.Message}");
+                                                jsonMessageBuilder.Clear(); // 清空缓存，防止后续解析错误
+                                            }
                                         }
                                     }
                                 }
@@ -371,7 +432,7 @@ namespace MachDBTcp.Services
                         }
 
                         // 清除缓存
-                        JsonMessage = string.Empty;
+                        //JsonMessage = string.Empty;
                     }
                     catch (Exception ex)
                     {
@@ -392,10 +453,9 @@ namespace MachDBTcp.Services
             }
             return string.Empty;
         }
-
         private void HandleBoardCardThread(TcpClient tcpClient, int delayTime, TcpSerModel model)
         {
-            if (!CheckTcpClient(model.BoardCardTcpClient))
+            if (!CheckTcpClient(model.BoardCard_DataBaseTcpClient))
             {
                 Instance.MasterComputer2BoardCardLog.Fatal("板卡套接字不可用...");
                 return;
@@ -404,7 +464,7 @@ namespace MachDBTcp.Services
             byte[] buffer = new byte[1024]; // 缓冲区大小
             StringBuilder jsonMessageBuilder = new StringBuilder();
             int bytesRead;
-            Instance.MasterComputer2BoardCardLog.Debug("上位机软件开始轮询板卡发来的请求,并且处理请求和返回...");
+            Instance.MasterComputer2BoardCardLog.Debug("开始轮询板卡发来的请求,并且处理请求和返回...");
             try
             {
                 while (tcpClient.Connected) // 保持连接，只要客户端未断开
@@ -430,7 +490,7 @@ namespace MachDBTcp.Services
                                 try
                                 {
                                     //这里写HandleBoardCard库中的分发方法，参数是板卡发来的Json数据，HandleBoardCard库是一个耦合库,由委托传入，具体参数由耦合方法编写时再决定
-                                    HandleBoardCard(currentData, model);
+                                    HandleBoardCard(currentData, model,tcpClient);
                                     // 清空 StringBuilder
                                     jsonMessageBuilder.Clear();
                                 }
@@ -469,66 +529,77 @@ namespace MachDBTcp.Services
         }
 
         // 主处理函数,每次有一条板卡消息调用一次这个函数分发任务
-        private void HandleBoardCard(string JsonSource, MachDBTcp.Models.TcpSerModel tcpSerModel)
+        private void HandleBoardCard(string JsonSource, MachDBTcp.Models.TcpSerModel tcpSerModel,TcpClient tcpClient)
         {
-
             try
             {
-                // 使用正则表达式解析 Cmd 字段
-                var match = tcpSerModel.regex_Cmd.Match(JsonSource);
-                if (match.Success)
+                // 正则表达式匹配多个 JSON 对象
+                string pattern = @"\{(?:[^{}]|(?<Open>\{)|(?<-Open>\}))*\}";
+
+                var matches = Regex.Matches(JsonSource, pattern);
+
+                if (matches.Count > 0)
                 {
-                    string cmd = match.Groups[1].Value;
-
-                    // 根据 Cmd 调用对应的函数
-                    switch (cmd)
+                    foreach (Match match in matches)
                     {
-                        case "Msg_filepic":
+                        string jsonObject = match.Value; // 获取单个 JSON 对象
+                        var matchCmd = tcpSerModel.regex_Cmd.Match(jsonObject);
 
-                            _ = Handle_Msg_filepic(JsonSource, tcpSerModel, int.Parse(Instance.config["MasterComputer:TestTime:MarkingDelayTime"]));
+                        if (matchCmd.Success)
+                        {
+                            string cmd = matchCmd.Groups[1].Value;
+                            switch (cmd)
+                            {
+                                case "Msg_filepic":
+                                    _ = Handle_Msg_filepic(jsonObject, tcpSerModel, int.Parse(Instance.config["MasterComputer:TestTime:MarkingDelayTime"]));
+                                    break;
 
-                            break;
+                                case "Msg_data":
+                                    _ = Handle_Msg_data(jsonObject, tcpSerModel);
+                                    break;
 
-                        case "Msg_data":
+                                case "Msg_text":
+                                    tcpSerModel.stopwatch.Reset();
+                                    tcpSerModel.stopwatch.Start();
+                                    Handle_Msg_text(jsonObject, tcpSerModel);
+                                    tcpSerModel.stopwatch.Stop();
+                                    Instance.MasterComputer2BoardCardLog.Debug($"Handle_Msg_text 执行时间：{tcpSerModel.stopwatch.ElapsedMilliseconds} ms");
+                                    break;
 
-                            _ = Handle_Msg_data(JsonSource, tcpSerModel);
+                                case "Msg_ctl":
+                                    tcpSerModel.stopwatch.Reset();
+                                    tcpSerModel.stopwatch.Start();
+                                    Handle_Msg_ctl(jsonObject, tcpSerModel);
+                                    tcpSerModel.stopwatch.Stop();
+                                    Instance.MasterComputer2BoardCardLog.Debug($"Handle_Msg_ctl 执行时间：{tcpSerModel.stopwatch.ElapsedMilliseconds} ms");
+                                    break;
 
-                            break;
-
-                        case "Msg_text":
-                            tcpSerModel.stopwatch.Reset();
-                            tcpSerModel.stopwatch.Start();
-                            Handle_Msg_text(JsonSource, tcpSerModel);
-                            tcpSerModel.stopwatch.Stop(); ;
-                            Instance.MasterComputer2BoardCardLog.Debug($"Handle_Msg_text 执行时间：{tcpSerModel.stopwatch.ElapsedMilliseconds} ms");
-
-                            break;
-
-                        case "Msg_ctl":
-                            tcpSerModel.stopwatch.Reset();
-                            tcpSerModel.stopwatch.Start();
-                            Handle_Msg_ctl(JsonSource, tcpSerModel);
-                            tcpSerModel.stopwatch.Stop(); ;
-                            Instance.MasterComputer2BoardCardLog.Debug($"Handle_Msg_ctl 执行时间：{tcpSerModel.stopwatch.ElapsedMilliseconds} ms");
-
-                            break;
-
-                        case "Msg_camera":
-                            tcpSerModel.stopwatch.Reset();
-                            tcpSerModel.stopwatch.Start();
-                            Handle_Msg_camera(JsonSource, tcpSerModel);
-                            tcpSerModel.stopwatch.Stop(); ;
-                            Instance.MasterComputer2BoardCardLog.Debug($"Handle_Msg_camera 执行时间：{tcpSerModel.stopwatch.ElapsedMilliseconds} ms");
-                            break;
-
-                        default:
-                            Instance.MasterComputer2BoardCardLog.Debug($"未知的 Cmd 类型: {cmd}");
-                            break;
+                                case "Msg_camera":
+                                    tcpSerModel.stopwatch.Reset();
+                                    tcpSerModel.stopwatch.Start();
+                                    Handle_Msg_camera(jsonObject, tcpSerModel);
+                                    tcpSerModel.stopwatch.Stop();
+                                    Instance.MasterComputer2BoardCardLog.Debug($"Handle_Msg_camera 执行时间：{tcpSerModel.stopwatch.ElapsedMilliseconds} ms");
+                                    break;
+                                case "Msg_rstdata":
+                                    Handle_Msg_rstdata(jsonObject, tcpSerModel);
+                                    break;
+                                default:
+                                    Instance.MasterComputer2BoardCardLog.Debug($"未知的 Cmd 类型: {cmd}");
+                                    Console.WriteLine(jsonObject);
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            Instance.MasterComputer2BoardCardLog.Error("无法解析 Cmd 字段。");
+                        }
                     }
                 }
                 else
                 {
-                    Instance.MasterComputer2BoardCardLog.Error("无法解析 Cmd 字段。");
+                    Instance.MasterComputer2BoardCardLog.Error("无法解析连续的 JSON 对象。");
+                    Console.WriteLine(JsonSource);
                 }
             }
             catch (Exception ex)
@@ -537,13 +608,43 @@ namespace MachDBTcp.Services
             }
         }
 
+        private void AddStartTail(ref byte[] allByteData, string strData)
+        {
+            try
+            {
+                byte[] headArrar = new byte[] { 0xEF, 0xBB, 0xBF, 0x00 };
+                byte[] endArrar = new byte[] { 0x00 };
+                byte[] dataArrar = Encoding.UTF8.GetBytes(strData);
+                int bLength = dataArrar.Length + 1;
+                byte[] lengthArray = BitConverter.GetBytes(bLength);//数据加结束符长度
+                bLength += headArrar.Length + lengthArray.Length;
+                allByteData = new byte[bLength];
+                Array.Copy(headArrar, 0, allByteData, 0, headArrar.Length);
+                Array.Copy(lengthArray, 0, allByteData, headArrar.Length, lengthArray.Length);
+                int toIndex = headArrar.Length + lengthArray.Length;
+                Array.Copy(dataArrar, 0, allByteData, toIndex, dataArrar.Length);
+                toIndex += dataArrar.Length;
+                Array.Copy(endArrar, 0, allByteData, toIndex, endArrar.Length);
+
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+
         private async Task Handle_Msg_filepic(string SourceJson, TcpSerModel tcpSerModel, int DelayTime)
         {
             tcpSerModel.stopwatch.Reset();
             tcpSerModel.stopwatch.Start();
-            // 如果有延迟时间，先执行延迟
-            await Task.Delay(DelayTime); // 异步等待，而不是阻塞线程
 
+            // 如果有延迟时间不为0，表示是测试模式,给默认值，否则从软件获取
+            if (DelayTime != 0)
+            {
+                //测试时需要延时
+                Thread.Sleep(DelayTime);
+            }
             try
             {
                 // 解析 JSON 数据
@@ -560,6 +661,8 @@ namespace MachDBTcp.Services
                 Instance.MasterComputer2BoardCardLog.Debug($"处理命令: {cmd}, 设备: {cDev}");
 
                 // 初始化图元信息变量，默认赋值
+                string up_actfileName = string.Empty;
+                string dn_actfileName = string.Empty;
                 string[] up_picName_A = Array.Empty<string>();
                 int[] up_picDb_A = Array.Empty<int>();
                 string[] up_picName_B = Array.Empty<string>();
@@ -576,7 +679,7 @@ namespace MachDBTcp.Services
                     {
                         if (DelayTime != 0)
                         {
-                            // 设置默认图元数据（可以替换成从软件获取的实际数据）
+                            up_actfileName = "test_up.bpd";
                             up_picName_A = new string[] { "TextT2_A", "Polygon1_A", "MBar1_A" };
                             up_picDb_A = new int[] { 0, 0, 2 };
                             up_picName_B = new string[] { "TextT2_B", "Polygon1_B", "MBar1_B" };
@@ -585,6 +688,11 @@ namespace MachDBTcp.Services
                         else
                         {
                             // 异步获取上标刻机图元信息
+                            up_actfileName = Instance.up_actfileName ?? up_actfileName;
+                            up_picName_A = Instance.up_picName_A ?? up_picName_A;
+                            up_picDb_A = Instance.up_picDb_A ?? up_picDb_A;
+                            up_picName_B = Instance.up_picName_B ?? up_picName_B;
+                            up_picDb_B = Instance.up_picDb_B ?? up_picDb_B;
                         }
                     }));
                 }
@@ -597,6 +705,7 @@ namespace MachDBTcp.Services
                         if (DelayTime != 0)
                         {
                             // 设置默认图元数据（可以替换成从软件获取的实际数据）
+                            dn_actfileName = "test_dn.bpd";
                             dn_picName_A = new string[] { "TextT1_A", "TextT2_A" };
                             dn_picDb_A = new int[] { 0, 3 };
                             dn_picName_B = new string[] { "TextT1_B", "TextT2_B" };
@@ -605,6 +714,11 @@ namespace MachDBTcp.Services
                         else
                         {
                             // 异步获取下标刻机图元信息
+                            dn_actfileName = Instance.dn_actfileName ?? dn_actfileName;
+                            dn_picDb_A = Instance.dn_picDb_A ?? dn_picDb_A;
+                            dn_picName_A = Instance.dn_picName_A ?? dn_picName_A;
+                            dn_picDb_B = Instance.dn_picDb_B ?? dn_picDb_B;
+                            dn_picName_B = Instance.dn_picName_B ?? dn_picName_B;
                         }
                     }));
                 }
@@ -614,10 +728,12 @@ namespace MachDBTcp.Services
 
                 // 组合信息
                 string JsonContainer = string.Empty;
-                tcpSerModel.IJsonServices.BuildJson_Msg_filepic(out JsonContainer, SourceJson, "12.bpd", "34.bpd", up_picName_A, up_picName_B, dn_picName_A, dn_picName_B, up_picDb_A, up_picDb_B, dn_picDb_A, dn_picDb_B);
+                tcpSerModel.IJsonServices.BuildJson_Msg_filepic(out JsonContainer, SourceJson, up_actfileName, dn_actfileName, up_picName_A, up_picName_B, dn_picName_A, dn_picName_B, up_picDb_A, up_picDb_B, dn_picDb_A, dn_picDb_B);
+                Console.WriteLine($"本次运行，图元信息：{JsonContainer}");
 
-                // 发给板卡
-                SendToBoardCard(ref JsonContainer, tcpSerModel);
+                // 发图元信息给板卡
+                SendToBoardCard(ref JsonContainer, tcpSerModel,tcpSerModel.BoardCard_DataBaseTcpClient);
+
             }
             catch (Exception ex)
             {
@@ -629,6 +745,9 @@ namespace MachDBTcp.Services
 
         private async Task Handle_Msg_data(string SourceJson, TcpSerModel tcpSerModel)
         {
+            //获取全局变量
+            int delay = int.Parse(Instance.config["MasterComputer:TestTime:GetLeagleDataDelayTime"]);
+            int isOKdelay = int.Parse(Instance.config["MasterComputer:TestTime:IsOKDataDelayTime"]);
             tcpSerModel.stopwatch.Reset();
             tcpSerModel.stopwatch.Start();
             string[]? dbData = null;
@@ -641,8 +760,8 @@ namespace MachDBTcp.Services
 
 
                 // 提取布尔值
-                bool cData = jsonObject["cData"]?.ToObject<bool>() ?? false;
-                bool cTest = jsonObject["cTest"]?.ToObject<bool>() ?? false;
+                int cData = jsonObject["cData"]?.ToObject<int>() ?? 0;
+                int cTest = jsonObject["cTest"]?.ToObject<int>() ?? 0;
                 bool fcamEn = jsonObject["fcamEn"]?.ToObject<bool>() ?? false;
                 bool bcamEn = jsonObject["bcamEn"]?.ToObject<bool>() ?? false;
 
@@ -650,30 +769,66 @@ namespace MachDBTcp.Services
                 var tasks = new List<Task>();
 
                 // 如果需要处理合法数据，创建一个任务
-                if (cData)
+                if (cData == 1)
                 {
                     tasks.Add(Task.Run(() =>
                     {
                         Instance.MasterComputer2BoardCardLog.Debug("向数据库请求合法数据...");
-                        tcpSerModel.IMachDBServices.GetLeagleData(out dbData, tcpSerModel.machDBModel);
+                        tcpSerModel.IMachDBServices.GetLeagleData(out dbData, tcpSerModel.machDBModel, delay);
                     }));
                 }
 
                 // 如果需要检测相机拍照和需要约定相片名字，创建另一个任务
-                if (cTest || fcamEn || bcamEn)
+                string cTresult = "OK";
+                if (cTest ==1 || fcamEn || bcamEn)
                 {
                     tasks.Add(Task.Run(() =>
                     {
                         if (CheckTcpClient(tcpSerModel.InferTcpClient1))
                         {
+
                             InferComputerReturnJson = SendToInferComputerAndWaitForReturn(
                             ref SourceJson,
                             tcpSerModel.InferTcpClient1,
-                            tcpSerModel
-                        );
+                            tcpSerModel);
 
                             Instance.MasterComputer2InferComputer1.Information($"收到推理机返回: {TcpSerModel.GetCmd(InferComputerReturnJson, tcpSerModel)}");
-                        }
+
+                            string cTresult_Infer = "";
+                            try
+                            {
+                                // 使用 Newtonsoft.Json.Linq.JObject 进行解析
+                                var jsonObj = Newtonsoft.Json.Linq.JObject.Parse(InferComputerReturnJson);
+
+                                // 尝试获取名为 "cTresult" 的字段
+                                var cTresultToken = jsonObj["cTresult"];
+
+                                if (cTresultToken != null)
+                                {
+                                    cTresult_Infer = cTresultToken.ToString();
+                                }
+                                else
+                                {
+                                    // 如果 JSON 中不存在 cTresult 字段，做一些处理
+                                    cTresult_Infer = "未获取到 cTresult";
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                // 如果 JSON 格式不正确或其他错误，可以在这里捕获并处理
+                                cTresult_Infer = $"JSON 解析出错: {ex.Message}";
+                            }
+
+                            //将推理机返回的内容交由数据库处理InferComputerReturnJson的 cTresult字段包含了推理机的明暗码结果和NG情况
+                            if (tcpSerModel.IMachDBServices.IsOKData(cTresult_Infer, tcpSerModel.machDBModel, isOKdelay))
+                            {
+                                cTresult = "OK";
+                            }
+                            else
+                            {
+                                cTresult = "NG";
+                            }
+                            }
                     }));
                 }
                 // 等待所有任务完成
@@ -681,18 +836,25 @@ namespace MachDBTcp.Services
 
                 //组合信息，发回给板卡
                 // 解析 JSON 数据
-                var jsonObject2 = JObject.Parse(InferComputerReturnJson);
+                string fpicAdd  = "fDefault.png";
+                string bpicAdd = "bDefault.png";
+                if (InferComputerReturnJson != string.Empty)
+                {
+                    var jsonObject2 = JObject.Parse(InferComputerReturnJson);
 
-                // 推理机发来的提取字段内容
-                string cTresult = jsonObject2["Data"]?["cTresult"]?.ToString() ?? "N/A";
-                string fpicAdd = jsonObject2["Data"]?["fpicAdd"]?.ToString() ?? "N/A";
-                string bpicAdd = jsonObject2["Data"]?["bpicAdd"]?.ToString() ?? "N/A";
+                    // 推理机发来的提取字段内容
+                     fpicAdd = jsonObject2["Data"]?["fpicAdd"]?.ToString() ?? "N/A";
+                     bpicAdd = jsonObject2["Data"]?["bpicAdd"]?.ToString() ?? "N/A";
+                }
 
                 //组装
                 tcpSerModel.IJsonServices.BuildJson_Msg_data(out JsonContainer, SourceJson, dbData, cTresult, fpicAdd, bpicAdd);
 
+                //测试时打印查看
+                //Console.WriteLine(JsonContainer);
+
                 //回复板卡的请求
-                SendToBoardCard(ref JsonContainer, tcpSerModel);
+                SendToBoardCard(ref JsonContainer, tcpSerModel,tcpSerModel.BoardCard_DataBaseTcpClient);
 
             }
             catch (Exception ex)
@@ -758,7 +920,7 @@ namespace MachDBTcp.Services
                 Instance.MasterComputer2InferComputer1.Information($"收到推理机返回: {TcpSerModel.GetCmd(InferComputerReturnJson, tcpSerModel)}");
 
                 //将推理机返回的内容发送给回板卡
-                SendToBoardCard(ref InferComputerReturnJson, tcpSerModel);
+                SendToBoardCard(ref InferComputerReturnJson, tcpSerModel,tcpSerModel.BoardCard_DataBaseTcpClient);
             }
 
             else
@@ -768,6 +930,74 @@ namespace MachDBTcp.Services
 
         }
 
+        private void ConnectToMarkingSoftWare(TcpSerModel tcp, string DownMarkingSoftWareIP, int downMarkingSoftWarePort, string UpMarkingSoftWareIP, int upMarkingSoftWarePort, int timeoutInSeconds)
+        {
+            int timeoutInMilliseconds = timeoutInSeconds * 1000;
+
+            // 连接上打标软件
+            ConnectWithTimeout(tcp, UpMarkingSoftWareIP, upMarkingSoftWarePort, timeoutInMilliseconds, true);
+
+            // 连接下打标软件
+            ConnectWithTimeout(tcp, DownMarkingSoftWareIP, downMarkingSoftWarePort, timeoutInMilliseconds, false);
+        }
+
+        private void ConnectWithTimeout(TcpSerModel tcp, string ipAddress, int port, int timeoutInMilliseconds, bool isUpMarking)
+        {
+            TcpClient client = new TcpClient();
+            IAsyncResult result = client.BeginConnect(IPAddress.Parse(ipAddress), port, null, null);
+
+            bool success = result.AsyncWaitHandle.WaitOne(timeoutInMilliseconds, false);
+
+            if (success)
+            {
+                try
+                {
+                    client.EndConnect(result);
+                    if (isUpMarking)
+                    {
+                        tcp.MarkingClientUp = client;
+                        Instance.MasterComputer2BoardCardLog.Debug($"已连接到上打标软件: {ipAddress}:{port}");
+                    }
+                    else
+                    {
+                        tcp.MarkingClientDn = client;
+                        Instance.MasterComputer2BoardCardLog.Debug($"已连接到下打标软件: {ipAddress}:{port}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (isUpMarking)
+                    {
+                        Instance.MasterComputer2BoardCardLog.Error($"连接上打标软件时出错: {ex.Message}");
+                    }
+                    else
+                    {
+                        Instance.MasterComputer2BoardCardLog.Error($"连接下打标软件时出错: {ex.Message}");
+                    }
+                    client.Close();
+                }
+            }
+            else
+            {
+                if (isUpMarking)
+                {
+                    Instance.MasterComputer2BoardCardLog.Error($"连接上打标软件超时: {ipAddress}:{port}");
+                }
+                else
+                {
+                    Instance.MasterComputer2BoardCardLog.Error($"连接下打标软件超时: {ipAddress}:{port}");
+                }
+                client.Close();
+                return;
+            }
+        }
+
+        private void Handle_Msg_rstdata(string SourceJson, TcpSerModel tcpSerModel)
+        {
+            string s = string.Empty;
+            SingleInstance.Instance.IJsonServices.BuildJson_Msg_rstdata(out s, SourceJson);
+            SendToBoardCard(ref s, tcpSerModel, tcpSerModel.BoardCard_DataBaseTcpClient);
+        }
 
 
         #endregion
@@ -1035,55 +1265,38 @@ namespace MachDBTcp.Services
                 string cDev = jsonObject["cDev"]?.ToObject<string>();
 
                 // 提取布尔值
-                bool cTest = jsonObject["cTest"]?.ToObject<bool>() ?? false;
+                int cTest = jsonObject["cTest"]?.ToObject<int>() ?? 0;
                 bool fcamEn = jsonObject["fcamEn"]?.ToObject<bool>() ?? false;
                 bool bcamEn = jsonObject["bcamEn"]?.ToObject<bool>() ?? false;
 
                 //检测相机需要立即工作得到NG情况
-                if (cTest)
+                if (cTest == 1)
                 {
                     if (cDev == "A0")
                     {
-                        if (
-                        tcpCliModel.IAlgorithmService.InspectionAlgorithm(
+                        //推理机请求相机拍照且将照片给算法计算，得到明暗码和NG情况，暂时放到cTresult中
+                        cTresult = tcpCliModel.IAlgorithmService.InspectionAlgorithm(
                         tcpCliModel.ICameraService.ActivateInspectionCamera(3, tcpCliModel.cameraModel),
                         tcpCliModel.ICameraService.ActivateInspectionCamera(4, tcpCliModel.cameraModel),
                         tcpCliModel.algorithmModel,
-                        int.Parse(Instance.config["InferComputer1:TestTime:InspectationAlgorithmTime"]))
-                        )
-                        {
-                            //OK
-                            cTresult = "OK";
-                        }
-                        else
-                        {
-                            cTresult = "NG";
-                        }
+                        int.Parse(Instance.config["InferComputer1:TestTime:InspectationAlgorithmTime"]));
+
                     }
 
                     else if (cDev == "B0")
                     {
-                        if (
-                        tcpCliModel.IAlgorithmService.InspectionAlgorithm(
+                        //推理机请求相机拍照且将照片给算法计算，得到明暗码和NG情况，暂时放到cTresult中
+                        cTresult = tcpCliModel.IAlgorithmService.InspectionAlgorithm(
                         tcpCliModel.ICameraService.ActivateInspectionCamera(7, tcpCliModel.cameraModel),
                         tcpCliModel.ICameraService.ActivateInspectionCamera(8, tcpCliModel.cameraModel),
                         tcpCliModel.algorithmModel,
-                        int.Parse(Instance.config["InferComputer1:TestTime:InspectationAlgorithmTime"]))
-                        )
-                        {
-                            //OK
-                            cTresult = "OK";
-                        }
-                        else
-                        {
-                            cTresult = "NG";
-                        }
+                        int.Parse(Instance.config["InferComputer1:TestTime:InspectationAlgorithmTime"]));
                     }
 
                     else
                     {
                         Instance.InferComputer12MasterComputer.Fatal("出现了除了A0和B0之外的不合法的产线？？？请联系程序员修改代码，这里NG踢掉");
-                        cTresult = "NG";
+                        cTresult = "？？？？？？？";
                     }
 
 
@@ -1104,6 +1317,9 @@ namespace MachDBTcp.Services
 
                 //构建Json数据
                 tcpCliModel.IJsonServices._BuildJson_Msg_data(out JsonContainer, SourceJson, cTresult, fpicAdd, bpicAdd);
+
+                //测试打印
+                //Console.WriteLine(JsonContainer);
 
                 //发送回上位机软件
                 SendToMasterComputer(ref JsonContainer, tcpCliModel);
@@ -1253,7 +1469,7 @@ namespace MachDBTcp.Services
             // 定义一个列表存储所有的 TcpClient 和其名称
             var clients = new List<(TcpClient? Client, string Name)>
     {
-        (tcp.BoardCardTcpClient, nameof(tcp.BoardCardTcpClient)),
+        (tcp.BoardCard_DataBaseTcpClient, nameof(tcp.BoardCard_DataBaseTcpClient)),
         (tcp.InferTcpClient1, nameof(tcp.InferTcpClient1)),
         (tcp.InferTcpClient2, nameof(tcp.InferTcpClient2))
     };
@@ -1302,3 +1518,7 @@ namespace MachDBTcp.Services
 
 
 }
+
+
+
+

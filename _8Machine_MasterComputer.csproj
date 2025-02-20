@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0" />
     <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="17.12.0" />
+    <PackageReference Include="MySql.Data" Version="9.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Serilog" Version="4.2.1-dev-02337" />
     <PackageReference Include="Serilog.Enrichers.CallerInfo" Version="1.0.5" />
@@ -27,20 +28,29 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="halcondotnet">
+      <HintPath>..\..\Class\_8Machine_Json\bin\Debug\net8.0-windows\halcondotnet.dll</HintPath>
+    </Reference>
+    <Reference Include="OPTSDK_Net">
+      <HintPath>..\..\Class\_8Machine_Json\bin\Debug\net8.0-windows\OPTSDK_Net.dll</HintPath>
+    </Reference>
     <Reference Include="_8Machine_Algorithm">
-      <HintPath>..\..\_8Machine\_8Machine_Algorithm\bin\Debug\net8.0-windows\_8Machine_Algorithm.dll</HintPath>
+      <HintPath>..\..\Class\_8Machine_Algorithm\bin\Debug\net8.0-windows\_8Machine_Algorithm.dll</HintPath>
     </Reference>
     <Reference Include="_8Machine_Camera">
-      <HintPath>..\..\_8Machine\_8Machine_Camera\bin\Debug\net8.0-windows\_8Machine_Camera.dll</HintPath>
+      <HintPath>..\..\Class\_8Machine_Camera\bin\Debug\net8.0-windows\_8Machine_Camera.dll</HintPath>
+    </Reference>
+    <Reference Include="_8Machine_Editor">
+      <HintPath>..\..\Class\_8Machine_Editor\bin\Debug\net8.0-windows\_8Machine_Editor.dll</HintPath>
     </Reference>
     <Reference Include="_8Machine_Json">
-      <HintPath>..\..\_8Machine\_8Machine_Json\bin\Debug\net8.0-windows\_8Machine_Json.dll</HintPath>
+      <HintPath>..\..\Class\_8Machine_Json\bin\Debug\net8.0-windows\_8Machine_Json.dll</HintPath>
     </Reference>
     <Reference Include="_8Machine_MachDB">
-      <HintPath>..\..\_8Machine\_8Machine_MachDB\bin\Debug\net8.0-windows\_8Machine_MachDB.dll</HintPath>
+      <HintPath>..\..\Class\_8Machine_MachDB\bin\Debug\net8.0-windows\_8Machine_MachDB.dll</HintPath>
     </Reference>
     <Reference Include="_8Machine_RTSPStreamer">
-      <HintPath>..\..\_8Machine\_8Machine_RTSPStreamer\bin\Debug\net8.0-windows\_8Machine_RTSPStreamer.dll</HintPath>
+      <HintPath>..\..\Class\_8Machine_RTSPStreamer\bin\Debug\net8.0-windows\_8Machine_RTSPStreamer.dll</HintPath>
     </Reference>
   </ItemGroup>
 

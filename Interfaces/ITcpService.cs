@@ -27,7 +27,7 @@ namespace MachDBTcp.Interfaces
         /// </summary>
         /// <param name="JsonMessage">需要发送的消息</param>
         /// <param name="tcp"></param>
-        public void SendToBoardCard(ref string JsonMessage,  TcpSerModel tcp);
+        public void SendToBoardCard(ref string JsonMessage,  TcpSerModel tcp, TcpClient tcpClient);
 
         /// <summary>
         /// 上位机软件（服务器端）通过Tcp发送信息给推理机，并等待回复

@@ -1,0 +1,58 @@
+﻿<Window x:Class="_8Machine_MasterComputer.View.DataBase"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:_8Machine_MasterComputer.View"
+        mc:Ignorable="d"
+        Title="DataBase" Height="450" Width="800">
+    <Grid>
+        <!-- 输入分隔符 -->
+        <TextBox x:Name="DelimiterTextBox"
+                 Width="50"
+                 Height="25"
+                 Margin="10,10,0,0"
+                 VerticalAlignment="Top"
+                 HorizontalAlignment="Left"
+                 Text="," />
+        <!-- 选择文件按钮 -->
+        <Button Content="选择文件"
+                Width="100"
+                Height="30"
+                Margin="10,50,0,0"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Left"
+                Click="SelectFileButton_Click" />
+
+        <!-- 显示用户选择的列 -->
+        <ListView x:Name="ColumnsListView"
+                  Margin="10,100,10,100"
+                  Height="150"
+                  HorizontalAlignment="Stretch">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="列名"
+                                    DisplayMemberBinding="{Binding ColumnName}" />
+                    <GridViewColumn Header="选择映射">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <ComboBox x:Name="ColumnSelector"
+                                          ItemsSource="{Binding ColumnOptions}"
+                                          SelectedItem="{Binding SelectedOption}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <!-- 导入按钮 -->
+        <Button Content="导入码包"
+                Width="100"
+                Height="30"
+                Margin="10,350,0,0"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Left"
+                Click="ImportDataButton_Click" />
+    </Grid>
+</Window>

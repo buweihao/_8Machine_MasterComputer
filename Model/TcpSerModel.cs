@@ -27,13 +27,16 @@ namespace MachDBTcp.Models
     public class TcpSerModel
     {
         //设置本机服务器的IP地址和端口号
-        public string ipAddress1 = Instance.config["MasterComputer:IP:BoardCardSeverIP"];
-        public int port1 = int.Parse(Instance.config["MasterComputer:Port:BoardCardSeverPort"]);
-        public string ipAddress2 = Instance.config["MasterComputer:IP:InferComputerServeIP"];
-        public int port2 = int.Parse(Instance.config["MasterComputer:Port:InferComputerServerPort"]);
+        public string ipAddress1 = Instance.config["MasterComputer:IP:ServerIP2BoardCard"];
+        public int port0 = int.Parse(Instance.config["MasterComputer:Port:DataBaseServerPort2BoardCard"]);
+        public int port1 = int.Parse(Instance.config["MasterComputer:Port:ServerPort2BoardCard"]);
+
+        public string ipAddress2 = Instance.config["MasterComputer:IP:ServerIP2InferComputer"];
+        public int port2 = int.Parse(Instance.config["MasterComputer:Port:ServerPort2InferComputer"]);
 
         //根据项目，需要有以下套接字
         public TcpClient? BoardCardTcpClient;
+        public TcpClient? BoardCard_DataBaseTcpClient;
         public TcpClient? InferTcpClient1;
         public TcpClient? InferTcpClient2;
         public TcpClient? MarkingClientUp;

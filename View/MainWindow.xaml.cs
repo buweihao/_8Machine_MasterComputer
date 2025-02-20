@@ -39,7 +39,6 @@ namespace _8Machine_MasterComputer
         {
             LaunchMasterComputerWindow();
             this.Close(); // 关闭当前窗口
-            SingleInstance.Instance.Initialize();
             MachDBTcpTestMain.MasterComputer();
         }
 
@@ -48,7 +47,6 @@ namespace _8Machine_MasterComputer
         {
             LaunchInferComputer1Window();  // 启动推理机1窗口
             this.Close(); // 关闭当前窗口
-            SingleInstance.Instance.Initialize();
             MachDBTcpTestMain.InferComputer1();
         }
 
@@ -57,8 +55,15 @@ namespace _8Machine_MasterComputer
         {
             LaunchInferComputer2Window();  // 启动推理机2窗口
             this.Close(); // 关闭当前窗口
+            MachDBTcpTestMain.Database();
         }
 
+        // 点击按钮4（数据库），启动对应的窗口
+        private void LaunchDataBaseWindow_Click(object sender, RoutedEventArgs e)
+        {
+            LaunchDatabaseWindow();  // 启动数据库窗口
+            this.Close(); // 关闭当前窗口
+        }
 
         // 启动 MasterComputer 窗口
         private static void LaunchMasterComputerWindow()
@@ -80,5 +85,13 @@ namespace _8Machine_MasterComputer
             var inferWindow2 = new InferComputer2();
             inferWindow2.Show();
         }
+
+        private static void LaunchDatabaseWindow()
+        {
+            var databaseWindow = new DataBase();
+            databaseWindow.Show();
+        }
+
+
     }
 }

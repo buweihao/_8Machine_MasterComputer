@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:_8Machine_MasterComputer"
         mc:Ignorable="d"
         Title="选择身份"
-        Height="300"
+        Height="350"
         Width="400">
     <StackPanel>
         <Button Content="上位机"
@@ -30,5 +30,12 @@
                 Width="200"
                 Height="50"
                 Click="LaunchInferComputer2Window_Click" />
+        <Button Content="数据库"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                Margin="10"
+                Width="200"
+                Height="50"
+                Click="LaunchDataBaseWindow_Click" />
     </StackPanel>
 </Window>

@@ -17,6 +17,8 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Enrichers.CallerInfo;
 using _8Machine_MasterComputer.View;
+using _8Machine_Editor.Services;
+using _8Machine_Editor.Interfaces;
 
 namespace _8Machine_MasterComputer.Instance
 {
@@ -28,47 +30,85 @@ namespace _8Machine_MasterComputer.Instance
         // 全局访问点
         public static SingleInstance Instance => instance.Value;
 
-        // 单例对象
+        // ViewModel
         public MasterComputerVM masterComputerVM { get; private set; }
         public InferComputer1VM inferComputer1VM { get; private set; }
+        public DataBaseVM dataBaseVM { get; private set; }
+
+        // 本项目model，存储和分发其它model和service
         public TcpSerModel tcpSerModel { get; set; }
         public TcpCliModel tcpCliModel { get; set; }
+
+        // 本项目model用于分发到各库中的model
         public _8Machine_Algorithm.Models.AlgorithmModel algorithmModel { get; }
         public _8Machine_Camera.Models.CameraModel cameraModel { get; }
         public _8Machine_Json.Models.JsonModel jsonModel { get; }
-        public _8Machine_MachDB.Models.MachDBModel machDBModel { get; }
+        public _8Machine_MachDB.Models.MachDBModel machDBModel { get; set; }
+        public _8Machine_Editor.Models.EditorModel editorModel { get; }
 
+        // 本项目service用于分发到各库中的service
         public ITcpService ITcpService { get; }
         public _8Machine_Algorithm.Interfaces.IAlgorithmService IAlgorithmService { get; }
         public _8Machine_Camera.Interfaces.ICameraService ICameraService { get; }
         public _8Machine_Json.Interfaces.IJsonServices IJsonServices { get; }
         public _8Machine_MachDB.Interfaces.IMachDBServices IMachDBServices { get; }
+        public _8Machine_Editor.Interfaces.IEditorService IEditorService { get; }
+
+        //json全局变量访问点
         public IConfigurationRoot config { get; }
 
+        //日志系统访问点
         public ILogger MasterComputer2BoardCardLog { get; private set; }
         public ILogger MasterComputer2InferComputer1 { get; private set; }
         public ILogger InferComputer12MasterComputer { get; private set; }
 
+        //用户选择的打标机图元信息
+        public  string up_actfileName;
+        public string dn_actfileName;
+
+        //A线上
+        public string[] up_picName_A;   //A线上图元名称
+        public int[] up_picDb_A;        //A线上图元数据列
+
+        //A线下
+        public int[] dn_picDb_A;        //A线下图元名称
+        public string[] dn_picName_A;   //A线下图元数据列
+
+        //B线上
+        public string[] dn_picName_B;   //B线上图元名称
+        public int[] up_picDb_B;        //B线上图元数据列
+
+        //B线下
+        public string[] up_picName_B;   //A线下图元名称
+        public int[] dn_picDb_B;        //A线下图元数据列
+
+        //主键的数据列
+        public int PrimarykeyColumn = 0;
 
 
-        // 私有构造函数，防止外部实例化
+
+
+        // 私有构造函数，防止外部实例化,这个函数将会在单例首次被使用时执行
         private SingleInstance()
         {
             // 初始化单例对象
             //tcpSerModel = new TcpSerModel();
             //tcpCliModel = new TcpCliModel();
+            ITcpService = new TcpService();
 
+            //用于分发的model和service
             algorithmModel = new _8Machine_Algorithm.Models.AlgorithmModel();
             cameraModel = new _8Machine_Camera.Models.CameraModel();
             jsonModel = new _8Machine_Json.Models.JsonModel();
-            machDBModel = new _8Machine_MachDB.Models.MachDBModel();
+            editorModel = new _8Machine_Editor.Models.EditorModel();
 
-            ITcpService = new TcpService();
             IAlgorithmService = new _8Machine_Algorithm.Services.AlgorithmService();
             ICameraService = new _8Machine_Camera.Services.CameraService();
             IJsonServices = new _8Machine_Json.Services.JsonServices();
             IMachDBServices = new _8Machine_MachDB.Services.MachDBServices();
-            
+            IEditorService = new EditorService();
+
+            //配置日志
             config = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory) // 设置基路径
             .AddJsonFile("Config/Config000.json", optional: false, reloadOnChange: true) // 加载 JSON 文件
@@ -76,11 +116,6 @@ namespace _8Machine_MasterComputer.Instance
 
             
 
-        }
-        public void Initialize()
-        {
-            // 确保在应用程序启动时初始化
-            Console.WriteLine("SingleInstance initialized.");
         }
 
         //特殊情况，需要在xmal启动时创建单例，因为需要注入一个控件
@@ -96,6 +131,11 @@ namespace _8Machine_MasterComputer.Instance
             logConfig("InferComputer1");
         }
 
+        public void InitializeDataBaseViewModel()
+        {
+            dataBaseVM = new DataBaseVM();
+            //logConfig("InferComputer1");
+        }
 
         private  void logConfig(string s)
         {
@@ -150,11 +190,6 @@ namespace _8Machine_MasterComputer.Instance
             {
 
             }
-
-
-
-
-
 
             //Log.Verbose("Verbose 日志");
             //Log.Debug("Debug 日志");
