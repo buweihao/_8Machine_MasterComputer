@@ -33,6 +33,7 @@ namespace _8Machine_MasterComputer.Instance
         // ViewModel
         public MasterComputerVM masterComputerVM { get; private set; }
         public InferComputer1VM inferComputer1VM { get; private set; }
+        public InferComputer2VM inferComputer2VM { get; private set; }
         public DataBaseVM dataBaseVM { get; private set; }
 
         // 本项目model，存储和分发其它model和service
@@ -125,11 +126,17 @@ namespace _8Machine_MasterComputer.Instance
             logConfig("MasterComputer");
         }
 
-        public void InitializeInferComputerViewModel()
+        public void InitializeInferComputer1ViewModel()
         {
             inferComputer1VM = new InferComputer1VM();
             logConfig("InferComputer1");
         }
+         public void InitializeInferComputer2ViewModel()
+        {
+            inferComputer2VM = new InferComputer2VM();
+            logConfig("InferComputer1");
+        }
+
 
         public void InitializeDataBaseViewModel()
         {

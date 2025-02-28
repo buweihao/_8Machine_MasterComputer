@@ -73,7 +73,7 @@ namespace MachDBTcp.Test
 
             //1、测试Tcp的启动 Start
             Console.WriteLine("开始测试函数：Start");
-            //iTcpServices.Start(tcpModel);
+            iTcpServices.Start(tcpModel);
 
         }
 
@@ -83,26 +83,43 @@ namespace MachDBTcp.Test
             //获取所需实例
             var tcpCliModel = new TcpCliModel();
             var ITcpServices = Instance.ITcpService;
-            var machDBModel = Instance.machDBModel;
-            var IMachDBServices = Instance.IMachDBServices;
             Instance.tcpCliModel = tcpCliModel;
 
 
             //基础接口测试
             Console.WriteLine("开始测试MachDBTcp推理机1库函数....");
 
-            // 测试数据库接口
-
-
-
-
-
             //1、连接服务器
-            ITcpServices.ConnectToMasterComputer(tcpCliModel);
+            ITcpServices.ConnectToMasterComputer(1,tcpCliModel);
 
 
 
         }
+
+
+        public static void InferComputer2()
+        {
+            //获取所需实例
+            var tcpCliModel = new TcpCliModel();
+            Instance.tcpCliModel = tcpCliModel;
+            var ITcpServices = Instance.ITcpService;
+            var IMachDBServices = Instance.IMachDBServices;
+
+            //以下需要前端提前点击生成
+            var machDBModel = Instance.machDBModel;
+
+
+            //基础接口测试
+            Console.WriteLine("开始测试MachDBTcp推理机2库函数....");
+
+            //1、连接服务器
+            ITcpServices.ConnectToMasterComputer(2,tcpCliModel);
+
+
+
+        }
+
+
 
         public static void Database()
         {

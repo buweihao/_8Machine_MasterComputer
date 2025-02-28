@@ -38,6 +38,9 @@ namespace _8Machine_MasterComputer.View
 
             InitializeComponent();
 
+            //加载数据库名字的下拉框
+            LoadDataBaseNames();
+
             //获取所需实例
             ITcpService = SingleInstance.Instance.ITcpService;
 
@@ -151,7 +154,7 @@ namespace _8Machine_MasterComputer.View
         // 上标刻 - 设为活动文件按钮点击事件
         private void btnSetActiveFileUpper_Click(object sender, RoutedEventArgs e)
         {
-            SetActiveFile(cmbFileListUpper, itemsControlUnitInfoUpper,SingleInstance.Instance.tcpSerModel.MarkingClientUp);
+            SetActiveFile(cmbFileListUpper, itemsControlUnitInfoUpper, SingleInstance.Instance.tcpSerModel.MarkingClientUp);
         }
 
         // 下标刻 - 设为活动文件按钮点击事件
@@ -161,7 +164,7 @@ namespace _8Machine_MasterComputer.View
         }
 
         // 设为活动文件的通用逻辑
-        private void SetActiveFile(ComboBox cmbFileList, ItemsControl itemsControlUnitInfo,TcpClient tcpClient)
+        private void SetActiveFile(ComboBox cmbFileList, ItemsControl itemsControlUnitInfo, TcpClient tcpClient)
         {
             TcpSerModel serModel = SingleInstance.Instance.tcpSerModel;
 
@@ -629,35 +632,72 @@ namespace _8Machine_MasterComputer.View
             }
         }
 
+        private void LoadDataBaseNames()
+        {
+            try
+            {
+                // 获取所有数据库配置
+                var customers = SingleInstance.Instance.config.GetSection("MasterComputer:Customer").Get<DatabaseConfig[]>();
 
-
+                // 确保加载到的配置不为空
+                if (customers != null)
+                {
+                    // 获取所有数据库的 DataBaseName，并添加到 ComboBox
+                    foreach (var customer in customers)
+                    {
+                        DataBaseComboBox.Items.Add(customer.DataBaseName);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("没有找到任何数据库配置。");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"加载数据库名称时发生错误: {ex.Message}");
+            }
+        }
 
 
         private void LoadmMachDBModelClick(object sender, RoutedEventArgs e)
         {
             //加载变量
-            string DataBaseName = "test";
+            // 获取 ComboBox 中选中的 DataBaseName
+            string DataBaseName = DataBaseComboBox.SelectedItem?.ToString();
+
+            if (string.IsNullOrEmpty(DataBaseName))
+            {
+                MessageBox.Show("请选择数据库！");
+                return;
+            }
 
             // 获取 'test' 数据库的 PrimaryKeyColumn
             var primaryKeyColumn = Convert.ToInt32(GetDatabaseConfigValue(DataBaseName, "PrimaryKeyColumn"));
-            Console.WriteLine($"PrimaryKeyColumn for 'test' database: {primaryKeyColumn}");
+            Console.WriteLine($"PrimaryKeyColumn for {DataBaseName} database: {primaryKeyColumn}");
 
             // 获取 'test' 数据库的 ColumnCount
             var columnCount = Convert.ToInt32(GetDatabaseConfigValue(DataBaseName, "ColumnCount"));
-            Console.WriteLine($"ColumnCount for 'test' database: {columnCount}");
+            Console.WriteLine($"ColumnCount for {DataBaseName} database: {columnCount}");
 
             // 获取 'test' 数据库的 DataBaseUserName
             var dbUserName = Convert.ToString(GetDatabaseConfigValue(DataBaseName, "DataBaseUserName"));
-            Console.WriteLine($"DataBaseUserName for 'test' database: {dbUserName}");
+            Console.WriteLine($"DataBaseUserName for {DataBaseName} database: {dbUserName}");
 
             // 获取 'test' 数据库的 DataBasePassword
             var dbPassword = Convert.ToString(GetDatabaseConfigValue(DataBaseName, "DataBasePassword"));
-            Console.WriteLine($"DataBasePassword for 'test' database: {dbPassword}");
+            Console.WriteLine($"DataBasePassword for {DataBaseName} database: {dbPassword}");
 
+            //创建MachDBModel，包含所有确定的SQL语句
             SingleInstance.Instance.machDBModel = new _8Machine_MachDB.Models.MachDBModel(DataBaseName, primaryKeyColumn, columnCount, dbUserName, dbPassword, 8);
 
+            //由于下发model时机已经错过，应该在这里手动下发到TcpSerModel
+            SingleInstance.Instance.tcpSerModel.machDBModel = SingleInstance.Instance.machDBModel;
 
-
+            //执行SQL语句，初始化数据库(表和存储过程）
+            SingleInstance.Instance.IMachDBServices.InitMySQL(SingleInstance.Instance.machDBModel);
+            //设置pool大小，可以从配置文件中引入
+            SingleInstance.Instance.IMachDBServices.SetPoolSize(SingleInstance.Instance.machDBModel);
 
         }
 
@@ -667,11 +707,6 @@ namespace _8Machine_MasterComputer.View
             IMachDBServices IMachDBServices = SingleInstance.Instance.IMachDBServices;
             TcpSerModel tcpSerModel = SingleInstance.Instance.tcpSerModel;
 
-            //连接数据库并初始化
-            IMachDBServices.InitMySQL(machDBModel);
-
-            //设置pool大小，可以从配置文件中引入
-            IMachDBServices.SetPoolSize(machDBModel);
 
             //清空新表
             IMachDBServices.ClearNewBlank(machDBModel);
@@ -697,10 +732,6 @@ namespace _8Machine_MasterComputer.View
             Console.WriteLine(strings[1]);
             Console.WriteLine(strings[2]);
             Console.WriteLine($"GetLeagleData 申请一条数据 执行时间：{tcpSerModel.stopwatch.ElapsedMilliseconds} ms");
-
-
-
-
         }
 
         private void IsNG_Click(object sender, RoutedEventArgs e)
@@ -723,7 +754,7 @@ namespace _8Machine_MasterComputer.View
 
             tcpSerModel.stopwatch.Reset();
             tcpSerModel.stopwatch.Start();
-            Console.WriteLine(IMachDBServices.IsOKData($"{DataArray1[0]},{DataArray1[1]},{DataArray1[2]},位置超差", machDBModel,0));
+            Console.WriteLine(IMachDBServices.IsOKData($"{DataArray1[0]},{DataArray1[1]},{DataArray1[2]},位置超差", machDBModel, 0));
             Console.WriteLine($"IsOKData 数据库判断是否NG之 推理机NG 执行时间：{tcpSerModel.stopwatch.ElapsedMilliseconds} ms");
 
             //完全合法
@@ -732,7 +763,7 @@ namespace _8Machine_MasterComputer.View
 
             tcpSerModel.stopwatch.Reset();
             tcpSerModel.stopwatch.Start();
-            Console.WriteLine(IMachDBServices.IsOKData($"{DataArray2[0]},{DataArray2[1]},{DataArray2[2]},OK", machDBModel,0));
+            Console.WriteLine(IMachDBServices.IsOKData($"{DataArray2[0]},{DataArray2[1]},{DataArray2[2]},OK", machDBModel, 0));
             Console.WriteLine($"IsOKData 数据库判断是否NG之 完全合法 执行时间：{tcpSerModel.stopwatch.ElapsedMilliseconds} ms");
 
             //已使用
@@ -742,7 +773,7 @@ namespace _8Machine_MasterComputer.View
             Console.WriteLine($"IsOKData 数据库判断是否NG之 码已使用 执行时间：{tcpSerModel.stopwatch.ElapsedMilliseconds} ms");
 
             //关联性错误
-            string[] DataArray3= new string[2];
+            string[] DataArray3 = new string[2];
             IMachDBServices.GetLeagleData(out DataArray3, machDBModel, 0); //先申请一条数据
 
             tcpSerModel.stopwatch.Reset();
@@ -753,6 +784,13 @@ namespace _8Machine_MasterComputer.View
 
 
 
+        }
+
+        private void ApplayForAData_Click(object sender, RoutedEventArgs e)
+        {
+            string[] strings = null;
+            SingleInstance.Instance.IMachDBServices.GetLeagleData(out strings, SingleInstance.Instance.machDBModel, 0);
+            Console.WriteLine(strings[2]);
         }
     }
 
@@ -799,7 +837,7 @@ public class TextBoxWriter : TextWriter
     {
         _textBox.Dispatcher.Invoke(() =>
         {
-            if(_textBox.LineCount >= 20)
+            if (_textBox.LineCount >= 20)
             {
                 _textBox.Clear();
             }

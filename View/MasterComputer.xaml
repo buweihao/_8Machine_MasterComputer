@@ -185,15 +185,35 @@
                               Margin="10"
                               AutoGenerateColumns="True" />
                 </Grid>
-                <Button Content="加载machDBModel"
-                        Click="LoadmMachDBModelClick"></Button>
-                <Button Content="测试数据库"
-                        Click="Test_DataBase">
-                </Button>
-                <Button Content="检测一条码"
-                        Click="IsNG_Click">
-                    
-                </Button>
+                <Border BorderBrush="Yellow" BorderThickness="5">
+                    <StackPanel>
+                        <Label Content="数据库操作 (bata版）"></Label>
+                        <ComboBox Name="DataBaseComboBox" />
+
+                        <Button Content="确认加载数据库"
+                                Click="LoadmMachDBModelClick"></Button>
+                        <Button Content="加载码包"
+                                Click="Test_DataBase">
+                        </Button>
+                        <Button Content="检测多条码"
+                                Click="IsNG_Click">
+                        </Button>
+                        <Button Content="申请一条码"
+                                Click="ApplayForAData_Click">
+                            
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <Grid>
+                    <Button Content="Load Database"
+                            Width="150"
+                            Height="30"
+                            VerticalAlignment="Top"
+                            Margin="10,50,0,0"
+                            HorizontalAlignment="Left"
+                            Click="LoadmMachDBModelClick" />
+                </Grid>
 
             </StackPanel>
 

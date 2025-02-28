@@ -55,7 +55,7 @@ namespace _8Machine_MasterComputer
         {
             LaunchInferComputer2Window();  // 启动推理机2窗口
             this.Close(); // 关闭当前窗口
-            MachDBTcpTestMain.Database();
+            MachDBTcpTestMain.InferComputer2();
         }
 
         // 点击按钮4（数据库），启动对应的窗口

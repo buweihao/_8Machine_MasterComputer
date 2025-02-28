@@ -20,8 +20,17 @@ namespace MachDBTcp.Models
     public class TcpCliModel
     {
         //连接的IP和端口
-        public string SerIpAddress = Instance.config["InferComputer1:IP:MasterComputerIP"];
-        public int SerPort = int.Parse(SingleInstance.Instance.config["InferComputer1:Port:MasterComputerPort"]);
+        public string SerIpAddressForInferComputer1 = Instance.config["InferComputer1:IP:MasterComputerIP"];
+        public int SerPortForInferComputer1 = int.Parse(SingleInstance.Instance.config["InferComputer1:Port:MasterComputerPort"]);
+
+        //似乎推理机2不需要连接到上位机
+        //public string SerIpAddressForInferComputer2 = Instance.config["InferComputer2:IP:MasterComputerIP"];
+        //public int SerPortForInferComputer2 = int.Parse(SingleInstance.Instance.config["InferComputer1:Port:MasterComputerPort"]);
+        public string PLCSerIpAddressForInferComputer2 = Instance.config["InferComputer2:IP:PLCIP"];
+        public int PLCSerPortForInferComputer2 = int.Parse(SingleInstance.Instance.config["InferComputer2:Port:PLCPort"]);
+
+
+
 
         //套接字
         public TcpClient? cli;

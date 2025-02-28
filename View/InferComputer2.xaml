@@ -8,6 +8,7 @@
         Title="InferComputer2" Height="450" Width="800">
     <StackPanel>
         <Label Content="hello,world!" FontSize="50"></Label> 
-        <Label Content="I am InferComputer2." FontSize="50"></Label> 
+        <Label Content="I am InferComputer2." FontSize="50"></Label>
+        <CheckBox Content="全NG模式" IsChecked="{Binding isCheck}"></CheckBox>
     </StackPanel>
 </Window>

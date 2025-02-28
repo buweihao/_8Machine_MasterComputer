@@ -1,4 +1,5 @@
-﻿using System;
+﻿using _8Machine_MasterComputer.Instance;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,11 @@ namespace _8Machine_MasterComputer.View
         public InferComputer2()
         {
             InitializeComponent();
+            SingleInstance.Instance.InitializeInferComputer2ViewModel();
+            DataContext = SingleInstance.Instance.inferComputer2VM;
         }
     }
+
+
+
 }

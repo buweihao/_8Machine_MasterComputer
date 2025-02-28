@@ -51,9 +51,6 @@ namespace MachDBTcp.Interfaces
 
 
 
-
-
-
         #endregion
 
         #region  推理机需要调用的方法
@@ -65,7 +62,7 @@ namespace MachDBTcp.Interfaces
         /// <param name="ReciveDelayTime">（可选）推理机监听上位机软件消息间隔，建议给小值，提高推理机相应速度</param>
         /// <param name="maxRetryCount">（可选）最大重连次</param>
         /// <param name="retryDelaySeconds">（可选）重连间隔</param>
-        public void ConnectToMasterComputer(TcpCliModel tcpCliModel);
+        public void ConnectToMasterComputer(int num, TcpCliModel tcpCliModel);
 
 
         /// <summary>

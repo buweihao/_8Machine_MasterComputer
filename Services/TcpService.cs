@@ -183,8 +183,12 @@ namespace MachDBTcp.Services
             // 启动监听线程
             listenerThread.Start();
 
-            //作为客户端连接上下打标软件，并将套接字保存到tcp.MarkingClientUp和tcp.MarkingClientDn
-            ConnectToMarkingSoftWare(tcp, DownMarkingSoftWareIP, downMarkingSoftWarePort, UpMarkingSoftWareIP, upMarkingSoftWarePort,5);
+            Thread ConnectThread = new Thread(() => {
+                //作为客户端连接上下打标软件，并将套接字保存到tcp.MarkingClientUp和tcp.MarkingClientDn
+                ConnectToMarkingSoftWare(tcp, DownMarkingSoftWareIP, downMarkingSoftWarePort, UpMarkingSoftWareIP, upMarkingSoftWarePort, 5);
+            });
+            ConnectThread.Start();
+
         }
 
 
@@ -345,7 +349,7 @@ namespace MachDBTcp.Services
             return string.Empty;
         }
 
-        public string SendToMarkingSoftwareAndWaitForReturn(ref string JsonMessage, TcpClient tcpClient, TcpSerModel tcp, int timeout = 5000)
+        public string SendToMarkingSoftwareAndWaitForReturn(ref string JsonMessage, TcpClient tcpClient, TcpSerModel tcp, int timeout = 3000)
         {
             try
             {
@@ -679,11 +683,11 @@ namespace MachDBTcp.Services
                     {
                         if (DelayTime != 0)
                         {
-                            up_actfileName = "test_up.bpd";
-                            up_picName_A = new string[] { "TextT2_A", "Polygon1_A", "MBar1_A" };
-                            up_picDb_A = new int[] { 0, 0, 2 };
-                            up_picName_B = new string[] { "TextT2_B", "Polygon1_B", "MBar1_B" };
-                            up_picDb_B = new int[] { 0, 0, 2 };
+                            up_actfileName = "001.bpd";
+                            up_picName_A = new string[] { "MBar1", "TextT16" };
+                            up_picDb_A = new int[] { 1, 2 };
+                            up_picName_B = new string[] { "MBar1", "TextT16" };
+                            up_picDb_B = new int[] { 1, 2 };
                         }
                         else
                         {
@@ -705,11 +709,11 @@ namespace MachDBTcp.Services
                         if (DelayTime != 0)
                         {
                             // 设置默认图元数据（可以替换成从软件获取的实际数据）
-                            dn_actfileName = "test_dn.bpd";
-                            dn_picName_A = new string[] { "TextT1_A", "TextT2_A" };
-                            dn_picDb_A = new int[] { 0, 3 };
-                            dn_picName_B = new string[] { "TextT1_B", "TextT2_B" };
-                            dn_picDb_B = new int[] { 0, 3 };
+                            dn_actfileName = "546.bpd";
+                            dn_picName_A = new string[] { "TextT2", "MBar1" };
+                            dn_picDb_A = new int[] { 3, 4 };
+                            dn_picName_B = new string[] { "TextT2", "MBar1" };
+                            dn_picDb_B = new int[] { 3, 4 };
                         }
                         else
                         {
@@ -851,7 +855,7 @@ namespace MachDBTcp.Services
                 tcpSerModel.IJsonServices.BuildJson_Msg_data(out JsonContainer, SourceJson, dbData, cTresult, fpicAdd, bpicAdd);
 
                 //测试时打印查看
-                //Console.WriteLine(JsonContainer);
+                Console.WriteLine(JsonContainer);
 
                 //回复板卡的请求
                 SendToBoardCard(ref JsonContainer, tcpSerModel,tcpSerModel.BoardCard_DataBaseTcpClient);
@@ -1006,7 +1010,7 @@ namespace MachDBTcp.Services
 
         #region  推理机调用的函数
 
-        public void ConnectToMasterComputer(TcpCliModel tcpCliModel)
+        public void ConnectToMasterComputer(int num ,TcpCliModel tcpCliModel)
         {
             // 获取需要的变量
             int ReciveDelayTime = int.Parse(Instance.config["InferComputer1:Delay:ReciveDelayTime"]);
@@ -1025,11 +1029,24 @@ namespace MachDBTcp.Services
                     {
                         // 创建 TcpClient 并尝试连接到服务器
                         tcpCliModel.cli = new TcpClient();
-                        tcpCliModel.cli.Connect(tcpCliModel.SerIpAddress, tcpCliModel.SerPort);
 
-                        // 连接成功
-                        isConnected = true;
-                        Instance.InferComputer12MasterComputer.Debug($"成功连接到服务器 {tcpCliModel.SerIpAddress}:{tcpCliModel.SerPort}");
+                        if(num == 1)
+                        {
+                            tcpCliModel.cli.Connect(tcpCliModel.SerIpAddressForInferComputer1, tcpCliModel.SerPortForInferComputer1);
+
+                            // 连接成功
+                            isConnected = true;
+                            Instance.InferComputer12MasterComputer.Debug($"成功连接到服务器 {tcpCliModel.SerIpAddressForInferComputer1}:{tcpCliModel.SerPortForInferComputer1}");
+                        }
+                        else if(num ==2)
+                        {
+                            tcpCliModel.cli.Connect(tcpCliModel.PLCSerIpAddressForInferComputer2, tcpCliModel.PLCSerPortForInferComputer2);
+
+                            // 连接成功
+                            isConnected = true;
+                            Instance.InferComputer12MasterComputer.Debug($"成功连接到服务器 {tcpCliModel.PLCSerIpAddressForInferComputer2}:{tcpCliModel.PLCSerPortForInferComputer2}");
+                        }
+
 
                         // 分配线程处理服务器消息
                         Thread clientThread = new Thread(() => HandleMasterComputerThread(ReciveDelayTime, tcpCliModel));
@@ -1291,6 +1308,7 @@ namespace MachDBTcp.Services
                         tcpCliModel.ICameraService.ActivateInspectionCamera(8, tcpCliModel.cameraModel),
                         tcpCliModel.algorithmModel,
                         int.Parse(Instance.config["InferComputer1:TestTime:InspectationAlgorithmTime"]));
+
                     }
 
                     else
@@ -1319,7 +1337,7 @@ namespace MachDBTcp.Services
                 tcpCliModel.IJsonServices._BuildJson_Msg_data(out JsonContainer, SourceJson, cTresult, fpicAdd, bpicAdd);
 
                 //测试打印
-                //Console.WriteLine(JsonContainer);
+                Console.WriteLine(JsonContainer);
 
                 //发送回上位机软件
                 SendToMasterComputer(ref JsonContainer, tcpCliModel);
@@ -1511,10 +1529,6 @@ namespace MachDBTcp.Services
 
 
     }
-
-
-
-
 
 
 }
