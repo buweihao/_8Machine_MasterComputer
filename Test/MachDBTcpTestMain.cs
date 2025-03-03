@@ -1,4 +1,4 @@
-﻿using _8Machine_MachDB.Models;
+﻿using MyDatabase.Models;
 using _8Machine_MasterComputer;
 using _8Machine_MasterComputer.Instance;
 using _8Machine_MasterComputer.View;
@@ -47,29 +47,6 @@ namespace MachDBTcp.Test
             Instance.MasterComputer2BoardCardLog.Fatal("致命");
 
 
-            //测试_8Machine_Editor
-            _8Machine_Editor.Interfaces.IEditorService editorService = SingleInstance.Instance.IEditorService;
-            _8Machine_Editor.Models.EditorModel editorModel = SingleInstance.Instance.editorModel;
-
-
-            //这些内容由前端控件赋值
-            editorModel.上暗列 = 0;
-            editorModel.上明列 = 2;
-            editorModel.上辅列 = 1;
-            editorModel.下暗列 = 4;
-            editorModel.下明列 = 5;
-            editorModel.下辅列 = 3;
-
-            // 设置码名称的顺序，并获取顺序码,设置上暗列为第2列，上明列为第三列，以此类推
-            int 顺序码1 = editorService.GetCode(editorModel.上暗列, editorModel.上明列, editorModel.上辅列, editorModel.下暗列, editorModel.下明列, editorModel.下辅列); //码包：辅助码（上）,明码（上），辅助码（下），暗码（下），明码（下）
-
-            // 获取数组索引，上相机暗得到第二列，索引应该是1
-            int index1 = editorService.GetIndex(顺序码1, CodeName.上相机明);
-            Console.WriteLine($"上相机暗的数组索引是: {index1}");
-
-            // 获取码名称，索引0应该是第一列，对应的是上辅列
-            CodeName codeName1 = editorService.GetCodeName(顺序码1, 0);
-            Console.WriteLine($"数组索引0对应的码名称是: {codeName1}");
 
             //1、测试Tcp的启动 Start
             Console.WriteLine("开始测试函数：Start");

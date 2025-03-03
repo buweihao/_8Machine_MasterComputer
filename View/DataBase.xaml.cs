@@ -34,8 +34,8 @@ namespace _8Machine_MasterComputer.View
         private List<string> fileContent;
         private List<ColumnMapping> columnsMapping;
         private string filePath;
-        private _8Machine_MachDB.Interfaces.IMachDBServices IMachDBServices = SingleInstance.Instance.IMachDBServices;
-        private _8Machine_MachDB.Models.MachDBModel machDBModel = SingleInstance.Instance.machDBModel;
+        private MyDatabase.Interfaces.IDatabaseServices IMachDBServices = SingleInstance.Instance.IMachDBServices;
+        private MyDatabase.Models.DatabaseModel machDBModel = SingleInstance.Instance.machDBModel;
 
         // 预定义的六个列名
         private readonly List<string> availableColumns = new List<string>

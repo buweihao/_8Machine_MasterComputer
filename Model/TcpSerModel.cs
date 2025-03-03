@@ -51,12 +51,12 @@ namespace MachDBTcp.Models
 
         //耦合部分
         //注入所有库model
-        public _8Machine_Json.Models.JsonModel jsonModel = Instance.jsonModel;
-        public _8Machine_MachDB.Models.MachDBModel machDBModel = Instance.machDBModel;
+        public MyJson.Models.JsonModel jsonModel = Instance.jsonModel;
+        public MyDatabase.Models.DatabaseModel machDBModel = Instance.machDBModel;
 
         //注入所有IService
-        public _8Machine_Json.Interfaces.IJsonServices IJsonServices = Instance.IJsonServices;
-        public _8Machine_MachDB.Interfaces.IMachDBServices IMachDBServices = Instance.IMachDBServices;
+        public MyJson.Interfaces.IJsonServices IJsonServices = Instance.IJsonServices;
+        public MyDatabase.Interfaces.IDatabaseServices IMachDBServices = Instance.IMachDBServices;
 
         public static string GetCmd(string json, TcpSerModel tcpSerModel)
         {

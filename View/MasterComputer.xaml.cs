@@ -22,8 +22,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Runtime;
 using Microsoft.Extensions.Configuration;
-using _8Machine_MachDB.Interfaces;
-using _8Machine_MachDB.Models;
+using MyDatabase.Interfaces;
+using MyDatabase.Models;
 namespace _8Machine_MasterComputer.View
 {
     /// <summary>
@@ -689,7 +689,7 @@ namespace _8Machine_MasterComputer.View
             Console.WriteLine($"DataBasePassword for {DataBaseName} database: {dbPassword}");
 
             //创建MachDBModel，包含所有确定的SQL语句
-            SingleInstance.Instance.machDBModel = new _8Machine_MachDB.Models.MachDBModel(DataBaseName, primaryKeyColumn, columnCount, dbUserName, dbPassword, 8);
+            SingleInstance.Instance.machDBModel = new MyDatabase.Models.DatabaseModel(DataBaseName, primaryKeyColumn, columnCount, dbUserName, dbPassword, 8);
 
             //由于下发model时机已经错过，应该在这里手动下发到TcpSerModel
             SingleInstance.Instance.tcpSerModel.machDBModel = SingleInstance.Instance.machDBModel;
@@ -703,8 +703,8 @@ namespace _8Machine_MasterComputer.View
 
         private void Test_DataBase(object sender, RoutedEventArgs e)
         {
-            MachDBModel machDBModel = SingleInstance.Instance.machDBModel;
-            IMachDBServices IMachDBServices = SingleInstance.Instance.IMachDBServices;
+            var machDBModel = SingleInstance.Instance.machDBModel;
+            var IMachDBServices = SingleInstance.Instance.IMachDBServices;
             TcpSerModel tcpSerModel = SingleInstance.Instance.tcpSerModel;
 
 
@@ -736,8 +736,8 @@ namespace _8Machine_MasterComputer.View
 
         private void IsNG_Click(object sender, RoutedEventArgs e)
         {
-            MachDBModel machDBModel = SingleInstance.Instance.machDBModel;
-            IMachDBServices IMachDBServices = SingleInstance.Instance.IMachDBServices;
+            var machDBModel = SingleInstance.Instance.machDBModel;
+            var IMachDBServices = SingleInstance.Instance.IMachDBServices;
             TcpSerModel tcpSerModel = SingleInstance.Instance.tcpSerModel;
             //使用存储过程对一条数据进行重码检测
 

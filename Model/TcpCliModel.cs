@@ -7,9 +7,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using _8Machine_Algorithm;
-using _8Machine_Camera;
-using _8Machine_RTSPStreamer;
 using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
 using _8Machine_MasterComputer.Instance;
@@ -46,15 +43,13 @@ namespace MachDBTcp.Models
 
         //耦合部分
         //耦合所需要的所有库
-        public _8Machine_Algorithm.Models.AlgorithmModel algorithmModel = Instance.algorithmModel;
-        public _8Machine_Camera.Models.CameraModel cameraModel = Instance.cameraModel;
-        public _8Machine_Json.Models.JsonModel jsonModel = Instance.jsonModel;
-        //public _8Machine_RTSPStreamer.Models.FFmpegRTSPStreamerModel fFmpegRTSPStreamerModel = null;
+        public MyAlgorithm.Models.AlgorithmModel algorithmModel = Instance.algorithmModel;
+        public MyCamera.Models.CameraModel cameraModel = Instance.cameraModel;
+        public MyJson.Models.JsonModel jsonModel = Instance.jsonModel;
 
-        public _8Machine_Algorithm.Interfaces.IAlgorithmService IAlgorithmService = Instance.IAlgorithmService;
-        public _8Machine_Camera.Interfaces.ICameraService ICameraService = Instance.ICameraService;
-        public _8Machine_Json.Interfaces.IJsonServices IJsonServices = Instance.IJsonServices;
-        //public _8Machine_RTSPStreamer.Interfaces.IFFmpegRTSPStreamerServices IFFmpegRTSPStreamerServices = null;
+        public MyAlgorithm.Interfaces.IAlgorithmService IAlgorithmService = Instance.IAlgorithmService;
+        public MyCamera.Interfaces.ICameraService ICameraService = Instance.ICameraService;
+        public MyJson.Interfaces.IJsonServices IJsonServices = Instance.IJsonServices;
 
 
 

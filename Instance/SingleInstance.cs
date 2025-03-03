@@ -5,10 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using _8Machine_Algorithm;
 using MachDBTcp.Interfaces;
 using MachDBTcp.Services;
-using _8Machine_Camera.Models;
 using MachDBTcp.Test;
 using System.Windows.Controls;
 using System.IO;
@@ -17,8 +15,6 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Enrichers.CallerInfo;
 using _8Machine_MasterComputer.View;
-using _8Machine_Editor.Services;
-using _8Machine_Editor.Interfaces;
 
 namespace _8Machine_MasterComputer.Instance
 {
@@ -41,19 +37,17 @@ namespace _8Machine_MasterComputer.Instance
         public TcpCliModel tcpCliModel { get; set; }
 
         // 本项目model用于分发到各库中的model
-        public _8Machine_Algorithm.Models.AlgorithmModel algorithmModel { get; }
-        public _8Machine_Camera.Models.CameraModel cameraModel { get; }
-        public _8Machine_Json.Models.JsonModel jsonModel { get; }
-        public _8Machine_MachDB.Models.MachDBModel machDBModel { get; set; }
-        public _8Machine_Editor.Models.EditorModel editorModel { get; }
+        public MyAlgorithm.Models.AlgorithmModel algorithmModel { get; }
+        public MyCamera.Models.CameraModel cameraModel { get; }
+        public MyJson.Models.JsonModel jsonModel { get; }
+        public MyDatabase.Models.DatabaseModel machDBModel { get; set; }
 
         // 本项目service用于分发到各库中的service
         public ITcpService ITcpService { get; }
-        public _8Machine_Algorithm.Interfaces.IAlgorithmService IAlgorithmService { get; }
-        public _8Machine_Camera.Interfaces.ICameraService ICameraService { get; }
-        public _8Machine_Json.Interfaces.IJsonServices IJsonServices { get; }
-        public _8Machine_MachDB.Interfaces.IMachDBServices IMachDBServices { get; }
-        public _8Machine_Editor.Interfaces.IEditorService IEditorService { get; }
+        public MyAlgorithm.Interfaces.IAlgorithmService IAlgorithmService { get; }
+        public MyCamera.Interfaces.ICameraService ICameraService { get; }
+        public MyJson.Interfaces.IJsonServices IJsonServices { get; }
+        public MyDatabase.Interfaces.IDatabaseServices IMachDBServices { get; }
 
         //json全局变量访问点
         public IConfigurationRoot config { get; }
@@ -98,16 +92,14 @@ namespace _8Machine_MasterComputer.Instance
             ITcpService = new TcpService();
 
             //用于分发的model和service
-            algorithmModel = new _8Machine_Algorithm.Models.AlgorithmModel();
-            cameraModel = new _8Machine_Camera.Models.CameraModel();
-            jsonModel = new _8Machine_Json.Models.JsonModel();
-            editorModel = new _8Machine_Editor.Models.EditorModel();
+            algorithmModel = new MyAlgorithm.Models.AlgorithmModel();
+            cameraModel = new MyCamera.Models.CameraModel();
+            jsonModel = new MyJson.Models.JsonModel();
 
-            IAlgorithmService = new _8Machine_Algorithm.Services.AlgorithmService();
-            ICameraService = new _8Machine_Camera.Services.CameraService();
-            IJsonServices = new _8Machine_Json.Services.JsonServices();
-            IMachDBServices = new _8Machine_MachDB.Services.MachDBServices();
-            IEditorService = new EditorService();
+            IAlgorithmService = new MyAlgorithm.Services.AlgorithmService();
+            ICameraService = new MyCamera.Services.CameraService();
+            IJsonServices = new MyJson.Services.JsonServices();
+            IMachDBServices = new MyDatabase.Services.DatabaseServices();
 
             //配置日志
             config = new ConfigurationBuilder()
