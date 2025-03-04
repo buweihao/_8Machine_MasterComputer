@@ -44,11 +44,11 @@ namespace MachDBTcp.Models
         //耦合部分
         //耦合所需要的所有库
         public MyAlgorithm.Models.AlgorithmModel algorithmModel = Instance.algorithmModel;
-        public MyCamera.Models.CameraModel cameraModel = Instance.cameraModel;
+        public MyCameraClass.Models.CameraModel cameraModel = Instance.cameraModel;
         public MyJson.Models.JsonModel jsonModel = Instance.jsonModel;
 
         public MyAlgorithm.Interfaces.IAlgorithmService IAlgorithmService = Instance.IAlgorithmService;
-        public MyCamera.Interfaces.ICameraService ICameraService = Instance.ICameraService;
+        public MyCameraClass.Interfaces.ICameraService ICameraService = Instance.ICameraService;
         public MyJson.Interfaces.IJsonServices IJsonServices = Instance.IJsonServices;
 
 

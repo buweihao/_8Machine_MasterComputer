@@ -781,9 +781,9 @@ namespace MachDBTcp.Services
                         tcpSerModel.IMachDBServices.GetLeagleData(out dbData, tcpSerModel.machDBModel, delay);
                     }));
                 }
+                int cTresult = 0;
 
                 // 如果需要检测相机拍照和需要约定相片名字，创建另一个任务
-                string cTresult = "OK";
                 if (cTest ==1 || fcamEn || bcamEn)
                 {
                     tasks.Add(Task.Run(() =>
@@ -798,7 +798,7 @@ namespace MachDBTcp.Services
 
                             Instance.MasterComputer2InferComputer1.Information($"收到推理机返回: {TcpSerModel.GetCmd(InferComputerReturnJson, tcpSerModel)}");
 
-                            string cTresult_Infer = "";
+                            string cTresult_Infer = string.Empty ;
                             try
                             {
                                 // 使用 Newtonsoft.Json.Linq.JObject 进行解析
@@ -811,26 +811,24 @@ namespace MachDBTcp.Services
                                 {
                                     cTresult_Infer = cTresultToken.ToString();
                                 }
-                                else
-                                {
-                                    // 如果 JSON 中不存在 cTresult 字段，做一些处理
-                                    cTresult_Infer = "未获取到 cTresult";
-                                }
                             }
                             catch (Exception ex)
                             {
                                 // 如果 JSON 格式不正确或其他错误，可以在这里捕获并处理
-                                cTresult_Infer = $"JSON 解析出错: {ex.Message}";
+                                Console.WriteLine($"JSON 解析出错: {ex.Message}");
                             }
 
-                            //将推理机返回的内容交由数据库处理InferComputerReturnJson的 cTresult字段包含了推理机的明暗码结果和NG情况
+                            //将推理机返回的内容交由数据库处理, InferComputerReturnJson的 cTresult字段包含了推理机的明暗码结果和NG情况
                             if (tcpSerModel.IMachDBServices.IsOKData(cTresult_Infer, tcpSerModel.machDBModel, isOKdelay))
                             {
-                                cTresult = "OK";
+                                cTresult = 0;
+
+                                //零时测试剔除功能，全部剔除
+                                //cTresult = 1;
                             }
                             else
                             {
-                                cTresult = "NG";
+                                cTresult = 1;
                             }
                             }
                     }));

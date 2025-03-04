@@ -28,6 +28,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="halcondotnet">
+      <HintPath>..\..\Class\MyJson\bin\Debug\net8.0-windows\halcondotnet.dll</HintPath>
+    </Reference>
     <Reference Include="MyAlgorithm">
       <HintPath>..\..\Class\MyAlgorithm\bin\Debug\net8.0-windows\MyAlgorithm.dll</HintPath>
     </Reference>
@@ -39,6 +42,9 @@
     </Reference>
     <Reference Include="MyJson">
       <HintPath>..\..\Class\MyJson\bin\Debug\net8.0-windows\MyJson.dll</HintPath>
+    </Reference>
+    <Reference Include="OPTSDK_Net">
+      <HintPath>..\..\Class\MyJson\bin\Debug\net8.0-windows\OPTSDK_Net.dll</HintPath>
     </Reference>
     <Reference Include="_8Machine_Editor">
       <HintPath>..\..\Class\_8Machine_Editor\bin\Debug\net8.0-windows\_8Machine_Editor.dll</HintPath>

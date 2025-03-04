@@ -20,6 +20,9 @@ using static _8Machine_MasterComputer.Instance.SingleInstance;
 using _8Machine_Editor;
 using _8Machine_Editor.Services;
 using static _8Machine_Editor.Interfaces.IEditorService;
+using static MyCameraClass.Services.CameraService;
+using OPTSDK_Net;
+using System.Runtime.InteropServices;
 
 namespace MachDBTcp.Test
 {
@@ -67,14 +70,14 @@ namespace MachDBTcp.Test
             Console.WriteLine("开始测试MachDBTcp推理机1库函数....");
 
             //1、连接服务器
-            ITcpServices.ConnectToMasterComputer(1,tcpCliModel);
+            ITcpServices.ConnectToMasterComputer(1, tcpCliModel);
 
 
 
         }
 
 
-        public static void InferComputer2()
+        public static async void InferComputer2()
         {
             //获取所需实例
             var tcpCliModel = new TcpCliModel();
@@ -90,7 +93,8 @@ namespace MachDBTcp.Test
             Console.WriteLine("开始测试MachDBTcp推理机2库函数....");
 
             //1、连接服务器
-            ITcpServices.ConnectToMasterComputer(2,tcpCliModel);
+            ITcpServices.ConnectToMasterComputer(2, tcpCliModel);
+
 
 
 

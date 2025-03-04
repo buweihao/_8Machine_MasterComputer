@@ -10,5 +10,8 @@
         <Label Content="hello,world!" FontSize="50"></Label> 
         <Label Content="I am InferComputer2." FontSize="50"></Label>
         <CheckBox Content="全NG模式" IsChecked="{Binding isCheck}"></CheckBox>
+        <Button Click="Button_Click" Height="20" Width="20"></Button>
+        <Image x:Name="CameraImage"
+               Stretch="Uniform" />
     </StackPanel>
 </Window>

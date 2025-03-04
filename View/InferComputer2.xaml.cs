@@ -26,6 +26,16 @@ namespace _8Machine_MasterComputer.View
             SingleInstance.Instance.InitializeInferComputer2ViewModel();
             DataContext = SingleInstance.Instance.inferComputer2VM;
         }
+        // 更新 UI 界面的 Image
+        private void UpdateImage(BitmapSource bitmap)
+        {
+            CameraImage.Source = bitmap;
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 
 

@@ -38,14 +38,14 @@ namespace _8Machine_MasterComputer.Instance
 
         // 本项目model用于分发到各库中的model
         public MyAlgorithm.Models.AlgorithmModel algorithmModel { get; }
-        public MyCamera.Models.CameraModel cameraModel { get; }
+        public MyCameraClass.Models.CameraModel cameraModel { get; }
         public MyJson.Models.JsonModel jsonModel { get; }
         public MyDatabase.Models.DatabaseModel machDBModel { get; set; }
 
         // 本项目service用于分发到各库中的service
         public ITcpService ITcpService { get; }
         public MyAlgorithm.Interfaces.IAlgorithmService IAlgorithmService { get; }
-        public MyCamera.Interfaces.ICameraService ICameraService { get; }
+        public MyCameraClass.Interfaces.ICameraService ICameraService { get; }
         public MyJson.Interfaces.IJsonServices IJsonServices { get; }
         public MyDatabase.Interfaces.IDatabaseServices IMachDBServices { get; }
 
@@ -93,11 +93,11 @@ namespace _8Machine_MasterComputer.Instance
 
             //用于分发的model和service
             algorithmModel = new MyAlgorithm.Models.AlgorithmModel();
-            cameraModel = new MyCamera.Models.CameraModel();
+            cameraModel = new MyCameraClass.Models.CameraModel();
             jsonModel = new MyJson.Models.JsonModel();
 
             IAlgorithmService = new MyAlgorithm.Services.AlgorithmService();
-            ICameraService = new MyCamera.Services.CameraService();
+            ICameraService = new MyCameraClass.Services.CameraService();
             IJsonServices = new MyJson.Services.JsonServices();
             IMachDBServices = new MyDatabase.Services.DatabaseServices();
 
